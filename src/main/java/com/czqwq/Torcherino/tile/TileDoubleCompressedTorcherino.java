@@ -9,10 +9,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 
-public class TileCompressedTorcherino extends TileEntity {
+public class TileDoubleCompressedTorcherino extends TileEntity {
 
-    // 加速效果：0%(停止)、900%、1800%、2700%、3600%
-    private int timeRate = 0; // 0表示停止，9表示900%，18表示1800%，以此类推
+    // 加速效果：0%(停止)、8100%、16200%、24300%、32400%
+    private int timeRate = 0; // 0表示停止，81表示8100%，162表示16200%，以此类推
 
     // 预设模式：
     // 模式0: 3x3x3 (x=1, y=1, z=1)
@@ -94,14 +94,15 @@ public class TileCompressedTorcherino extends TileEntity {
                 // 如果当前是停止状态，切换回第一个范围模式
                 isStopped = false;
                 mode = 0;
-                player.addChatComponentMessage(new ChatComponentText("Compressed Torcherino mode set to: 3x3x3"));
+                player
+                    .addChatComponentMessage(new ChatComponentText("Double Compressed Torcherino mode set to: 3x3x3"));
             } else {
                 mode = (byte) ((mode + 1) % 5);
 
                 // 检查是否是停止模式（模式4）
                 if (mode == 4) {
                     isStopped = true;
-                    player.addChatComponentMessage(new ChatComponentText("Compressed Torcherino stopped"));
+                    player.addChatComponentMessage(new ChatComponentText("Double Compressed Torcherino stopped"));
                 } else {
                     String modeName = switch (mode) {
                         case 0 -> "3x3x3";
@@ -112,17 +113,18 @@ public class TileCompressedTorcherino extends TileEntity {
                     };
 
                     player.addChatComponentMessage(
-                        new ChatComponentText("Compressed Torcherino mode set to: " + modeName));
+                        new ChatComponentText("Double Compressed Torcherino mode set to: " + modeName));
                 }
             }
         } else {
-            // Shift右击：切换加速效果 (0%、900%、1800%、2700%、3600%)
-            timeRate = (timeRate + 9) % 45; // 0, 9, 18, 27, 36循环，对应0%、900%、1800%、2700%、3600%
+            // Shift右击：切换加速效果 (0%、8100%、16200%、24300%、32400%)
+            timeRate = (timeRate + 81) % 405; // 0, 81, 162, 243, 324循环，对应0%、8100%、16200%、24300%、32400%
             if (timeRate == 0) {
-                player.addChatComponentMessage(new ChatComponentText("Compressed Torcherino speed set to: Stopped"));
+                player.addChatComponentMessage(
+                    new ChatComponentText("Double Compressed Torcherino speed set to: Stopped"));
             } else {
                 player.addChatComponentMessage(
-                    new ChatComponentText("Compressed Torcherino speed set to: " + (timeRate * 100) + "%"));
+                    new ChatComponentText("Double Compressed Torcherino speed set to: " + (timeRate * 100) + "%"));
             }
         }
     }
@@ -175,6 +177,7 @@ public class TileCompressedTorcherino extends TileEntity {
         TileEntity tileEntity = world.getTileEntity(x, y, z);
         if (tileEntity != null && !(tileEntity instanceof TileTorcherinoAccelerated)
             && !(tileEntity instanceof TileCompressedTorcherino)
+            && !(tileEntity instanceof TileDoubleCompressedTorcherino)
             && !tileEntity.isInvalid()
             && tileEntity.canUpdate()) {
 

@@ -33,5 +33,14 @@ public class ModRecipes {
             "TTT",
             'T',
             ModBlocks.torcherino);
+
+        // 二重压缩火把合成配方
+        GameRegistry.addShapedRecipe(
+            new ItemStack(ModBlocks.doubleCompressedTorcherino),
+            "TTT",
+            "TTT",
+            "TTT",
+            'T',
+            ModBlocks.compressedTorcherino);
     }
 }

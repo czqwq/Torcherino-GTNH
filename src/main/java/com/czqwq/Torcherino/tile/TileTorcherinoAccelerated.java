@@ -344,16 +344,8 @@ public class TileTorcherinoAccelerated extends TileEntity {
             // 特殊处理GregTech机器
             else if (isGregTechMachine(tileEntity)) {
                 // 尝试通过反射直接加速GregTech机器的加工时间
-                if (!accelerateGregTechMachine(tileEntity, timeRate)) {
-                    // 如果反射加速失败，回退到普通加速方式
-                    for (int i = 0; i < timeRate; i++) {
-                        try {
-                            tileEntity.updateEntity();
-                        } catch (Exception e) {
-                            // 忽略加速过程中可能发生的异常
-                        }
-                    }
-                }
+                // 如果反射加速失败，不进行任何操作以避免跳电问题
+                accelerateGregTechMachine(tileEntity, timeRate);
             } else {
                 // 对于没有实现ITileEntityTickAcceleration接口的传统TileEntity，使用原有的加速方式
                 for (int i = 0; i < timeRate; i++) {
@@ -399,21 +391,9 @@ public class TileTorcherinoAccelerated extends TileEntity {
                         int progressTime = progressTimeField.getInt(metaTileEntity);
                         // 只有当机器正在工作时才加速（progressTime > 0）
                         if (progressTime > 0) {
-                            // 获取最大加工时间
-                            int maxProgressTime = Integer.MAX_VALUE;
-                            Field maxProgressTimeField = getField(metaTileEntity.getClass(), "mMaxProgresstime");
-                            if (maxProgressTimeField != null) {
-                                maxProgressTimeField.setAccessible(true);
-                                maxProgressTime = maxProgressTimeField.getInt(metaTileEntity);
-                            }
-
                             // 加速加工时间，直接增加进度值
                             // 注意：我们增加的是已用时间，而不是减少剩余时间
                             int newProgressTime = progressTime + rate;
-                            // 确保不超过最大加工时间
-                            if (newProgressTime > maxProgressTime) {
-                                newProgressTime = maxProgressTime;
-                            }
 
                             progressTimeField.setInt(metaTileEntity, newProgressTime);
                             return true;
