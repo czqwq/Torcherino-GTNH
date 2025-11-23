@@ -1,5 +1,7 @@
 package com.czqwq.Torcherino.tile;
 
+import static net.minecraft.util.StatCollector.translateToLocal;
+
 import java.lang.reflect.Field;
 import java.util.Random;
 
@@ -94,14 +96,15 @@ public class TileCompressedTorcherino extends TileEntity {
                 // 如果当前是停止状态，切换回第一个范围模式
                 isStopped = false;
                 mode = 0;
-                player.addChatComponentMessage(new ChatComponentText("Compressed Torcherino mode set to: 3x3x3"));
+                player.addChatComponentMessage(
+                    new ChatComponentText(translateToLocal("torcherino.change_mode_area") + " 3x3x3"));
             } else {
                 mode = (byte) ((mode + 1) % 5);
 
                 // 检查是否是停止模式（模式4）
                 if (mode == 4) {
                     isStopped = true;
-                    player.addChatComponentMessage(new ChatComponentText("Compressed Torcherino stopped"));
+                    player.addChatComponentMessage(new ChatComponentText(translateToLocal("torcherino.stopped")));
                 } else {
                     String modeName = switch (mode) {
                         case 0 -> "3x3x3";
@@ -112,17 +115,21 @@ public class TileCompressedTorcherino extends TileEntity {
                     };
 
                     player.addChatComponentMessage(
-                        new ChatComponentText("Compressed Torcherino mode set to: " + modeName));
+                        new ChatComponentText(translateToLocal("torcherino.change_mode_area") + " " + modeName));
                 }
             }
         } else {
             // Shift右击：切换加速效果 (0%、900%、1800%、2700%、3600%)
             timeRate = (timeRate + 9) % 45; // 0, 9, 18, 27, 36循环，对应0%、900%、1800%、2700%、3600%
             if (timeRate == 0) {
-                player.addChatComponentMessage(new ChatComponentText("Compressed Torcherino speed set to: Stopped"));
+                player.addChatComponentMessage(
+                    new ChatComponentText(
+                        translateToLocal("torcherino.change_mode_speed") + " "
+                            + translateToLocal("torcherino.stopped")));
             } else {
                 player.addChatComponentMessage(
-                    new ChatComponentText("Compressed Torcherino speed set to: " + (timeRate * 100) + "%"));
+                    new ChatComponentText(
+                        translateToLocal("torcherino.change_mode_speed") + " " + (timeRate * 100) + "%"));
             }
         }
     }

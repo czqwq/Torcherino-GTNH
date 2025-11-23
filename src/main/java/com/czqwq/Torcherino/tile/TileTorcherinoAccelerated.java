@@ -1,5 +1,7 @@
 package com.czqwq.Torcherino.tile;
 
+import static net.minecraft.util.StatCollector.translateToLocal;
+
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -41,7 +43,7 @@ public class TileTorcherinoAccelerated extends TileEntity {
     private static final Map<World, Set<WeakReference<TileTorcherinoAccelerated>>> torcherinosByWorld = new WeakHashMap<World, Set<WeakReference<TileTorcherinoAccelerated>>>();
 
     // 加速效果：0%、100%、200%、300%、400%
-    private int timeRate = 1; // 0表示0%，1表示100%，2表示200%，以此类推
+    private int timeRate = 0; // 0表示0%，1表示100%，2表示200%，以此类推
 
     // 预设模式：
     // 模式0: 3x3x3 (x=1, y=1, z=1)
@@ -131,14 +133,15 @@ public class TileTorcherinoAccelerated extends TileEntity {
                 // 如果当前是停止状态，切换回第一个范围模式
                 isStopped = false;
                 mode = 0;
-                player.addChatComponentMessage(new ChatComponentText("Torcherino mode set to: 3x3x3"));
+                player.addChatComponentMessage(
+                    new ChatComponentText(translateToLocal("torcherino.change_mode_area") + " 3x3x3"));
             } else {
                 mode = (byte) ((mode + 1) % 5);
 
                 // 检查是否是停止模式（模式4）
                 if (mode == 4) {
                     isStopped = true;
-                    player.addChatComponentMessage(new ChatComponentText("Torcherino stopped"));
+                    player.addChatComponentMessage(new ChatComponentText(translateToLocal("torcherino.stopped")));
                 } else {
                     String modeName = switch (mode) {
                         case 0 -> "3x3x3";
@@ -148,13 +151,23 @@ public class TileTorcherinoAccelerated extends TileEntity {
                         default -> "";
                     };
 
-                    player.addChatComponentMessage(new ChatComponentText("Torcherino mode set to: " + modeName));
+                    player.addChatComponentMessage(
+                        new ChatComponentText(translateToLocal("torcherino.change_mode_area") + " " + modeName));
                 }
             }
         } else {
             // Shift右击：切换加速效果 (0%、100%、200%、300%、400%)
             timeRate = (timeRate + 1) % 5; // 0-4循环，对应0%、100%、200%、300%、400%
-            player.addChatComponentMessage(new ChatComponentText("Torcherino speed set to: " + (timeRate * 100) + "%"));
+            if (timeRate == 0) {
+                player.addChatComponentMessage(
+                    new ChatComponentText(
+                        translateToLocal("torcherino.change_mode_speed") + " "
+                            + translateToLocal("torcherino.stopped")));
+            } else {
+                player.addChatComponentMessage(
+                    new ChatComponentText(
+                        translateToLocal("torcherino.change_mode_speed") + " " + (timeRate * 100) + "%"));
+            }
         }
     }
 

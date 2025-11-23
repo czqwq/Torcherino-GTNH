@@ -1,3 +1,6 @@
-tile.torcherino.name=시간의 횃불
-tile.compressed_torcherino.name=시간의 압축 토치
-tile.double_compressed_torcherino.name=시간의 슈퍼 압축 토치
+tile.torcherino.name=토쳐리노
+tile.compressed_torcherino.name=압축된 토쳐리노
+tile.double_compressed_torcherino.name=이중 압축 토쳐리노
+torcherino.change_mode_area=영역 설정:
+torcherino.change_mode_speed=속도 설정:
+torcherino.stopped=토쳐리노 정지됨

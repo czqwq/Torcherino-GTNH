@@ -1,7 +1,6 @@
 tile.torcherino.name=Torcherino
 tile.compressed_torcherino.name=Compressed Torcherino
-tile.double_compressed_torcherino.name=Super Compressed Torcherino
-
-tile.inverse_torcherino.name=Inverted Torcherino
-tile.compressed_inverse_torcherino.name=Inverted Compressed Torcherino
-tile.double_compressed_inverse_torcherino.name=Inverted Super Compressed Torcherino
+tile.double_compressed_torcherino.name=Double Compressed Torcherino
+torcherino.change_mode_area=Area set to:
+torcherino.change_mode_speed=Speed set to:
+torcherino.stopped=Torcherino stopped
