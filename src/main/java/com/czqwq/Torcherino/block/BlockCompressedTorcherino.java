@@ -12,22 +12,22 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import com.czqwq.Torcherino.Torcherino;
-import com.czqwq.Torcherino.tile.TileTorcherinoAccelerated;
+import com.czqwq.Torcherino.tile.TileCompressedTorcherino;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BlockTorcherino extends BlockTorch implements ITileEntityProvider {
+public class BlockCompressedTorcherino extends BlockTorch implements ITileEntityProvider {
 
-    public BlockTorcherino() {
+    public BlockCompressedTorcherino() {
         super();
-        this.setLightLevel(0.75f);
+        this.setLightLevel(1.0f); // 更高的亮度
         this.isBlockContainer = true;
     }
 
     @Override
     public TileEntity createNewTileEntity(World world, int meta) {
-        return new TileTorcherinoAccelerated();
+        return new TileCompressedTorcherino();
     }
 
     /**
@@ -44,11 +44,11 @@ public class BlockTorcherino extends BlockTorch implements ITileEntityProvider {
         if (!world.isRemote) {
             TileEntity tile = world.getTileEntity(x, y, z);
 
-            if (tile instanceof TileTorcherinoAccelerated) {
-                TileTorcherinoAccelerated torch = (TileTorcherinoAccelerated) tile;
+            if (tile instanceof TileCompressedTorcherino) {
+                TileCompressedTorcherino torch = (TileCompressedTorcherino) tile;
 
-                // 如果玩家没有潜行，切换激活状态
-                // 如果玩家潜行，调整加速效果
+                // 如果玩家没有潜行，切换X轴范围
+                // 如果玩家潜行，根据计数器切换Z轴范围、Y轴范围或加速效果
                 torch.onBlockActivated(player);
             }
         }
@@ -61,8 +61,8 @@ public class BlockTorcherino extends BlockTorch implements ITileEntityProvider {
         if (!world.isRemote) {
             TileEntity tile = world.getTileEntity(x, y, z);
 
-            if (tile instanceof TileTorcherinoAccelerated) {
-                TileTorcherinoAccelerated torch = (TileTorcherinoAccelerated) tile;
+            if (tile instanceof TileCompressedTorcherino) {
+                TileCompressedTorcherino torch = (TileCompressedTorcherino) tile;
                 boolean powered = world.isBlockIndirectlyGettingPowered(x, y, z);
                 torch.setActive(!powered);
             }
@@ -81,7 +81,7 @@ public class BlockTorcherino extends BlockTorch implements ITileEntityProvider {
      */
     @SideOnly(Side.CLIENT)
     public void randomDisplayTick(World worldIn, int x, int y, int z, Random random) {
-        // 使用火把的粒子效果
+        // 使用更亮的火把粒子效果
         Blocks.torch.randomDisplayTick(worldIn, x, y, z, random);
     }
 
@@ -94,6 +94,6 @@ public class BlockTorcherino extends BlockTorch implements ITileEntityProvider {
     @Override
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister registry) {
-        this.blockIcon = registry.registerIcon(Torcherino.MODID + ":torcherino");
+        this.blockIcon = registry.registerIcon(Torcherino.MODID + ":compressed_torcherino");
     }
 }

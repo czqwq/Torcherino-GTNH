@@ -11,16 +11,27 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class ModRecipes {
 
     public static void init() {
+        // 原始火把合成配方
+        // 第一列：aya (a为空气, y为钟)
+        // 第二列：yxy (y为钟, x为火把)
+        // 第三列：aya (a为空气, y为钟)
         GameRegistry.addShapedRecipe(
             new ItemStack(ModBlocks.torcherino),
-            "XCX",
-            "CTC",
-            "XCX",
-            'C',
-            Items.clock,
-            'T',
-            Blocks.torch,
+            " Y ",
+            "YXY",
+            " Y ",
             'X',
-            Items.redstone);
+            Blocks.torch,
+            'Y',
+            Items.clock);
+
+        // 压缩火把合成配方
+        GameRegistry.addShapedRecipe(
+            new ItemStack(ModBlocks.compressedTorcherino),
+            "TTT",
+            "TTT",
+            "TTT",
+            'T',
+            ModBlocks.torcherino);
     }
 }
