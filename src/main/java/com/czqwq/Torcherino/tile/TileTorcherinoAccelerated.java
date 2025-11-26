@@ -13,6 +13,7 @@ import java.util.WeakHashMap;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
@@ -169,6 +170,24 @@ public class TileTorcherinoAccelerated extends TileEntity {
                         translateToLocal("torcherino.change_mode_speed") + " " + (timeRate * 100) + "%"));
             }
         }
+    }
+
+    @Override
+    public void readFromNBT(NBTTagCompound compound) {
+        super.readFromNBT(compound);
+        mode = compound.getByte("Mode");
+        timeRate = compound.getInteger("TimeRate");
+        isStopped = compound.getBoolean("IsStopped");
+        is_active = compound.getBoolean("IsActive");
+    }
+
+    @Override
+    public void writeToNBT(NBTTagCompound compound) {
+        super.writeToNBT(compound);
+        compound.setByte("Mode", mode);
+        compound.setInteger("TimeRate", timeRate);
+        compound.setBoolean("IsStopped", isStopped);
+        compound.setBoolean("IsActive", is_active);
     }
 
     @Override
