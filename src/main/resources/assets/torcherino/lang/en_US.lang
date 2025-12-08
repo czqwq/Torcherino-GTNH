@@ -1,6 +1,14 @@
 tile.torcherino.name=Torcherino
 tile.compressed_torcherino.name=Compressed Torcherino
 tile.double_compressed_torcherino.name=Double Compressed Torcherino
-torcherino.change_mode_area=Area set to:
-torcherino.change_mode_speed=Speed set to:
-torcherino.stopped=Torcherino stopped
+
+#test
+torcherino.change_mode_area=Changed area mode to
+torcherino.change_mode_speed=Changed speed mode to
+torcherino.stopped=Stopped
+
+#incoming
+gui.torcherino.speed=Speed:
+gui.torcherino.x_range=X Range:
+gui.torcherino.y_range=Y Range:
+gui.torcherino.z_range=Z Range:

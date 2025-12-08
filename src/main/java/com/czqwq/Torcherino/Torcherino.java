@@ -3,6 +3,7 @@ package com.czqwq.Torcherino;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -21,6 +22,8 @@ public class Torcherino {
     public static final Logger LOG = LogManager.getLogger(MODID);
     public static final String VERSION = "1.0";
 
+    public static boolean hasGregTech = false;
+
     @SidedProxy(clientSide = "com.czqwq.Torcherino.ClientProxy", serverSide = "com.czqwq.Torcherino.CommonProxy")
     public static CommonProxy proxy;
 
@@ -28,6 +31,9 @@ public class Torcherino {
     // preInit "Run before anything else. Read your config, create blocks, items, etc, and register them with the
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
+        // 检测GregTech是否加载
+        hasGregTech = Loader.isModLoaded("gregtech");
+
         proxy.preInit(event);
     }
 

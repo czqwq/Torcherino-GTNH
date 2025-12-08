@@ -3,7 +3,6 @@ package com.czqwq.Torcherino.tile;
 import static net.minecraft.util.StatCollector.translateToLocal;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -17,6 +16,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
+
+import com.czqwq.Torcherino.Torcherino;
 
 /**
  * ITileEntityTickAcceleration接口用于支持特定TileEntity的时间加速功能
@@ -374,9 +375,8 @@ public class TileTorcherinoAccelerated extends TileEntity {
                 acceleratedTile.tickAcceleration(timeRate);
             }
             // 特殊处理GregTech机器
-            else if (isGregTechMachine(tileEntity)) {
-                // 尝试通过反射直接加速GregTech机器的加工时间
-                // 如果反射加速失败，不进行任何操作以避免跳电问题
+            else if (Torcherino.hasGregTech && isGregTechMachine(tileEntity)) {
+                // 直接加速GregTech机器，而不是使用反射
                 accelerateGregTechMachine(tileEntity, timeRate);
             } else {
                 // 对于没有实现ITileEntityTickAcceleration接口的传统TileEntity，使用原有的加速方式
@@ -396,78 +396,127 @@ public class TileTorcherinoAccelerated extends TileEntity {
      */
     private boolean isGregTechMachine(TileEntity tileEntity) {
         // 检查是否为GregTech机器
-        String className = tileEntity.getClass()
-            .getName();
-        return className.contains("gregtech")
-            && (className.contains("BaseMetaTileEntity") || className.contains("MetaTileEntity"));
+        if (Torcherino.hasGregTech) {
+            try {
+                // 尝试使用反射检查是否为GregTech机器
+                Class<?> baseMetaTileEntityClass = Class.forName("gregtech.api.metatileentity.BaseMetaTileEntity");
+                boolean result = baseMetaTileEntityClass.isInstance(tileEntity);
+                // if (result) {
+                // Torcherino.LOG.debug(
+                // "Identified GregTech machine: {}",
+                // tileEntity.getClass()
+                // .getName());
+                // }
+                return result;
+            } catch (ClassNotFoundException e) {
+                // 如果找不到类，则使用原来的字符串匹配方式
+                String className = tileEntity.getClass()
+                    .getName();
+                boolean result = className.contains("gregtech")
+                    && (className.contains("BaseMetaTileEntity") || className.contains("MetaTileEntity"));
+                if (result) {
+                    // Torcherino.LOG.debug("Identified GregTech machine by name matching: {}", className);
+                }
+                return result;
+            }
+        }
+        return false;
     }
 
     /**
-     * 通过反射加速GregTech机器
-     * 
+     * 加速GregTech机器
+     *
      * @param tileEntity GregTech机器的TileEntity
      * @param rate       加速倍率
      * @return 是否成功加速
      */
     private boolean accelerateGregTechMachine(TileEntity tileEntity, int rate) {
-        try {
-            // 获取mMetaTileEntity字段，这是GregTech机器的核心
-            Object metaTileEntity = getMetaTileEntity(tileEntity);
-            if (metaTileEntity != null) {
-                // 尝试获取并修改mProgresstime字段（加工时间）
-                try {
-                    Field progressTimeField = getField(metaTileEntity.getClass(), "mProgresstime");
-                    if (progressTimeField != null) {
-                        progressTimeField.setAccessible(true);
+        if (Torcherino.hasGregTech) {
+            try {
+                // 使用反射处理GregTech机器
+                Class<?> baseMetaTileEntityClass = Class.forName("gregtech.api.metatileentity.BaseMetaTileEntity");
+                Class<?> commonMetaTileEntityClass = Class.forName("gregtech.api.metatileentity.CommonMetaTileEntity");
+                Class<?> multiBlockBaseClass = Class
+                    .forName("gregtech.api.metatileentity.implementations.MTEMultiBlockBase");
 
-                        int progressTime = progressTimeField.getInt(metaTileEntity);
+                if (baseMetaTileEntityClass.isInstance(tileEntity)) {
+                    // 获取getMetaTileEntity方法
+                    java.lang.reflect.Method getMetaTileEntityMethod = baseMetaTileEntityClass
+                        .getMethod("getMetaTileEntity");
+                    Object metaTileEntity = getMetaTileEntityMethod.invoke(tileEntity);
+
+                    if (metaTileEntity == null) {
+                        // Torcherino.LOG.debug(
+                        // "MetaTileEntity is null for tile entity: {}",
+                        // tileEntity.getClass()
+                        // .getName());
+                        return false;
+                    }
+
+                    // 检查是否为CommonMetaTileEntity及其子类
+                    if (commonMetaTileEntityClass.isInstance(metaTileEntity)) {
+                        // 获取getProgresstime方法
+                        java.lang.reflect.Method getProgresstimeMethod = commonMetaTileEntityClass
+                            .getMethod("getProgresstime");
+                        int progressTime = (Integer) getProgresstimeMethod.invoke(metaTileEntity);
+
+                        // Torcherino.LOG.debug("GregTech machine progress time: {}", progressTime);
+
                         // 只有当机器正在工作时才加速（progressTime > 0）
                         if (progressTime > 0) {
-                            // 加速加工时间，直接增加进度值
-                            // 注意：我们增加的是已用时间，而不是减少剩余时间
-                            int newProgressTime = progressTime + rate;
-
-                            progressTimeField.setInt(metaTileEntity, newProgressTime);
+                            // 检查是否为多方块机器
+                            if (multiBlockBaseClass.isInstance(metaTileEntity)) {
+                                // 直接增加mProgresstime字段值（在metaTileEntity的实际类中）
+                                java.lang.reflect.Field progressTimeField = metaTileEntity.getClass()
+                                    .getField("mProgresstime");
+                                int newProgressTime = progressTime + rate;
+                                progressTimeField.setInt(metaTileEntity, newProgressTime);
+                                // Torcherino.LOG.debug("Accelerated multi-block GregTech machine by {} ticks", rate);
+                            } else {
+                                // 其他机器使用increaseProgress方法
+                                try {
+                                    java.lang.reflect.Method increaseProgressMethod = commonMetaTileEntityClass
+                                        .getMethod("increaseProgress", int.class);
+                                    increaseProgressMethod.invoke(metaTileEntity, rate);
+                                    // Torcherino.LOG
+                                    // .debug("Accelerated GregTech machine using increaseProgress by {} ticks", rate);
+                                } catch (NoSuchMethodException e) {
+                                    // 如果找不到increaseProgress方法，直接增加进度（在metaTileEntity的实际类中）
+                                    // Torcherino.LOG.debug(
+                                    // "increaseProgress method not found, falling back to direct field access");
+                                    java.lang.reflect.Field progressTimeField = metaTileEntity.getClass()
+                                        .getField("mProgresstime");
+                                    int newProgressTime = progressTime + rate;
+                                    progressTimeField.setInt(metaTileEntity, newProgressTime);
+                                    // Torcherino.LOG
+                                    // .debug("Accelerated GregTech machine by direct field access by {} ticks", rate);
+                                }
+                            }
                             return true;
+                        } else {
+                            // Torcherino.LOG.debug("GregTech machine is not currently working (progressTime <= 0)");
                         }
+                    } else {
+                        // Torcherino.LOG.debug(
+                        // "MetaTileEntity is not a CommonMetaTileEntity: {}",
+                        // metaTileEntity.getClass()
+                        // .getName());
                     }
-                } catch (Exception ignored) {
-                    // 如果没有mProgresstime字段或操作失败，继续尝试其他方式
+                } else {
+                    // Torcherino.LOG.debug(
+                    // "TileEntity is not a BaseMetaTileEntity: {}",
+                    // tileEntity.getClass()
+                    // .getName());
                 }
+            } catch (Exception e) {
+                // 如果反射失败，记录错误并返回false
+                // Torcherino.LOG.error("Error accelerating GregTech machine: ", e);
+                return false;
             }
-        } catch (Exception e) {
-            // 如果反射失败
-            return false;
+        } else {
+            // Torcherino.LOG.debug("GregTech is not loaded");
         }
 
         return false;
-    }
-
-    /**
-     * 获取MetaTileEntity对象
-     */
-    private Object getMetaTileEntity(TileEntity tileEntity) {
-        try {
-            Field metaTileEntityField = getField(tileEntity.getClass(), "mMetaTileEntity");
-            if (metaTileEntityField != null) {
-                metaTileEntityField.setAccessible(true);
-                return metaTileEntityField.get(tileEntity);
-            }
-        } catch (Exception ignored) {}
-        return null;
-    }
-
-    /**
-     * 递归查找字段（包括父类）
-     */
-    private Field getField(Class<?> clazz, String fieldName) {
-        while (clazz != null && !clazz.equals(Object.class)) {
-            try {
-                return clazz.getDeclaredField(fieldName);
-            } catch (Exception ignored) {
-                clazz = clazz.getSuperclass();
-            }
-        }
-        return null;
     }
 }

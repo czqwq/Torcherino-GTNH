@@ -1,6 +1,12 @@
 tile.torcherino.name=加速火把
-tile.compressed_torcherino.name=压缩加速火炬
-tile.double_compressed_torcherino.name=超级压缩加速火炬
-torcherino.change_mode_area=加速区域设置为:
-torcherino.change_mode_speed=加速火把速度设置为: 
-torcherino.stopped=加速已停止
+tile.compressed_torcherino.name=压缩加速火把
+tile.double_compressed_torcherino.name=双重压缩加速火把
+
+torcherino.change_mode_area=已更改范围模式为
+torcherino.change_mode_speed=已更改速度模式为
+torcherino.stopped=已停止
+
+gui.torcherino.speed=速度:
+gui.torcherino.x_range=X范围:
+gui.torcherino.y_range=Y范围:
+gui.torcherino.z_range=Z范围:

@@ -13,6 +13,7 @@ dependencies {
     implementation(gtnhDev("NewHorizonsCoreMod"))
     implementation(gtnhDev("Mobs-Info"))
     implementation(gtnhDev("Infernal-Mobs"))
+    implementation(gtnhDev("ModularUI2"))
     implementation(gtnhDev("Galaxy-Space-GTNH"))
     implementation(gtnhDev("SGCraft"))
     implementation(gtnhDev("twilightforest"))
