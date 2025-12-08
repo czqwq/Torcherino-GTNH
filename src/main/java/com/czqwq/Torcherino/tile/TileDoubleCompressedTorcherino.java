@@ -309,7 +309,9 @@ public class TileDoubleCompressedTorcherino extends TileEntity {
                                 }
                             }
                             return true;
-                        }}}
+                        }
+                    }
+                }
             } catch (Exception e) {
                 // 如果反射失败，记录错误并返回false
                 // Torcherino.LOG.error("Error accelerating GregTech machine: ", e);
