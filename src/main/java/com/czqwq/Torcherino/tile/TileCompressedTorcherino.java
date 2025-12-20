@@ -194,7 +194,11 @@ public class TileCompressedTorcherino extends TileEntity {
         // 加速方块随机刻
         if (block != null && block.getTickRandomly()) {
             for (int i = 0; i < timeRate; i++) {
-                block.updateTick(world, x, y, z, new Random());
+                try {
+                    block.updateTick(world, x, y, z, new Random());
+                } catch (Exception e) {
+                    // 忽略加速过程中可能发生的异常，包括BiomesOPlenty中的空指针异常
+                }
             }
         }
 
@@ -208,7 +212,11 @@ public class TileCompressedTorcherino extends TileEntity {
             // 特殊处理GregTech机器
             if (Torcherino.hasGregTech && isGregTechMachine(tileEntity)) {
                 // 直接加速GregTech机器，而不是使用反射
-                accelerateGregTechMachine(tileEntity, timeRate);
+                try {
+                    accelerateGregTechMachine(tileEntity, timeRate);
+                } catch (Exception e) {
+                    // 忽略加速过程中可能发生的异常
+                }
             } else {
                 // 对于非GregTech机器，使用原有的加速方式
                 for (int i = 0; i < timeRate; i++) {
