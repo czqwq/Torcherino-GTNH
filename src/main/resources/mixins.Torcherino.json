@@ -4,10 +4,5 @@
   "package": "com.czqwq.Torcherino.mixins.late",
   "refmap": "mixins.Torcherino.refmap.json",
   "target": "@env(DEFAULT)",
-  "compatibilityLevel": "JAVA_8",
-  "mixins": [
-    "GregTech.BaseMetaTileEntityAcceleration_Mixin",
-    "GregTech.MTEAdvAssLineAcceleration_Mixin",
-    "TecTech.ResearchStationAcceleration_Mixin"
-  ]
+  "compatibilityLevel": "JAVA_8"
 }
