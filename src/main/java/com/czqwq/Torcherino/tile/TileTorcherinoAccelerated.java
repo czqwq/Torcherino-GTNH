@@ -18,26 +18,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 
 import com.czqwq.Torcherino.Torcherino;
-
-/**
- * ITileEntityTickAcceleration接口用于支持特定TileEntity的时间加速功能
- * 只有实现了此接口的TileEntity才能享受精准的时间加速，而不影响能耗速度
- */
-interface ITileEntityTickAcceleration {
-
-    /**
-     * <li>true if the tickAcceleration logic should be executed.</li>
-     * <li>false if the default TileEntity update method should proceed.</li>
-     */
-    boolean tickAcceleration(int tickAcceleratedRate);
-
-    /**
-     * adaptation to other aspects of the tileEntity
-     */
-    default int getTickAcceleratedRate() {
-        return 1;
-    }
-}
+import com.czqwq.Torcherino.api.interfaces.ITileEntityTickAcceleration;
 
 public class TileTorcherinoAccelerated extends TileEntity {
 
