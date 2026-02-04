@@ -2,6 +2,7 @@ package com.czqwq.Torcherino;
 
 import com.czqwq.Torcherino.block.ModBlocks;
 import com.czqwq.Torcherino.init.ModRecipes;
+import com.czqwq.Torcherino.item.ModItems;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -16,6 +17,7 @@ public class CommonProxy {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
 
         ModBlocks.init();
+        ModItems.init();
 
         Torcherino.LOG.info(Config.greeting);
         Torcherino.LOG.info("I am Torcherino at version " + Torcherino.VERSION);
