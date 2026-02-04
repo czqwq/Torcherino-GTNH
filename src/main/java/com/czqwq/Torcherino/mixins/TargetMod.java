@@ -2,6 +2,7 @@ package com.czqwq.Torcherino.mixins;
 
 @SuppressWarnings({ "unused", "SpellCheckingInspection" })
 public enum TargetMod {
+
     GregTech("GregTech", "gregtech"),
     TecTech("TecTech - Tec Technology!", "tectech"),
     GigaGramFab("GigaGramFab", "ggfab"),

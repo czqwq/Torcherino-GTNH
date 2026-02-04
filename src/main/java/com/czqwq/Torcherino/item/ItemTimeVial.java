@@ -1,7 +1,5 @@
 package com.czqwq.Torcherino.item;
 
-import static com.czqwq.Torcherino.entity.EntityTimeAccelerator.ACCELERATION_TICK;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -36,8 +34,8 @@ public class ItemTimeVial extends Item {
     }
 
     @Override
-    public boolean onItemUseFirst(ItemStack stack, EntityPlayer player, World world, int x, int y, int z,
-        int side, float hitX, float hitY, float hitZ) {
+    public boolean onItemUseFirst(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
+        float hitX, float hitY, float hitZ) {
 
         if (world.isRemote) return super.onItemUseFirst(stack, player, world, x, y, z, side, hitX, hitY, hitZ);
 
@@ -108,13 +106,7 @@ public class ItemTimeVial extends Item {
         int i = (int) (Math.log(eta.getTimeRate()) / Math.log(2)) - 2;
         // security considerations
         if (i < 0 || i >= SOUND_ARRAY_F.length) i = 0;
-        world.playSoundEffect(
-            targetPosX,
-            targetPosY,
-            targetPosZ,
-            "note.harp",
-            0.5F,
-            SOUND_ARRAY_F[i]);
+        world.playSoundEffect(targetPosX, targetPosY, targetPosZ, "note.harp", 0.5F, SOUND_ARRAY_F[i]);
     }
 
     protected boolean consumeTimeData(ItemStack stack, int consumedTick) {
@@ -134,7 +126,8 @@ public class ItemTimeVial extends Item {
     }
 
     @Override
-    public void onUpdate(ItemStack stack, World worldIn, net.minecraft.entity.Entity entityIn, int slot, boolean isHeld) {
+    public void onUpdate(ItemStack stack, World worldIn, net.minecraft.entity.Entity entityIn, int slot,
+        boolean isHeld) {
         if (worldIn.isRemote) return;
         NBTTagCompound nbtTagCompound = stack.getTagCompound();
         if (nbtTagCompound == null) {
@@ -162,8 +155,8 @@ public class ItemTimeVial extends Item {
         int minutes = (storedTimeSeconds % 3600) / 60;
         int seconds = storedTimeSeconds % 60;
         list.add(
-            StatCollector.translateToLocal("item.timeVial.time") + ": " + hours + "h " + minutes + "m " + seconds
-                + "s");
+            StatCollector.translateToLocal(
+                "item.timeVial.time") + ": " + hours + "h " + minutes + "m " + seconds + "s");
     }
 
     @Override
@@ -174,7 +167,12 @@ public class ItemTimeVial extends Item {
         int hours = storedTimeSeconds / 3600;
         int minutes = (storedTimeSeconds % 3600) / 60;
         int seconds = storedTimeSeconds % 60;
-        return StatCollector.translateToLocal(this.getUnlocalizedNameInefficiently(stack) + ".name") + " (" + hours
-            + "h " + minutes + "m " + seconds + "s)";
+        return StatCollector.translateToLocal(this.getUnlocalizedNameInefficiently(stack) + ".name") + " ("
+            + hours
+            + "h "
+            + minutes
+            + "m "
+            + seconds
+            + "s)";
     }
 }

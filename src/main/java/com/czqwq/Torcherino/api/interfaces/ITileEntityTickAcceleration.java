@@ -2,7 +2,8 @@ package com.czqwq.Torcherino.api.interfaces;
 
 /**
  * ITileEntityTickAcceleration interface is used to support time acceleration for specific TileEntities
- * Only TileEntities that implement this interface can enjoy precise time acceleration without affecting energy consumption speed
+ * Only TileEntities that implement this interface can enjoy precise time acceleration without affecting energy
+ * consumption speed
  */
 public interface ITileEntityTickAcceleration {
 

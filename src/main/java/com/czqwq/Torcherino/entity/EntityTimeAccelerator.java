@@ -124,9 +124,7 @@ public class EntityTimeAccelerator extends Entity {
     }
 
     private boolean shouldAccelerate(Block block) {
-        return block != null
-            && block.getTickRandomly()
-            && worldObj.getTotalWorldTime() % 2 == 0;
+        return block != null && block.getTickRandomly() && worldObj.getTotalWorldTime() % 2 == 0;
     }
 
     private void accelerateTileEntity(TileEntity tileEntity, long tMaxTime) {

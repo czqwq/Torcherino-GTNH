@@ -17,7 +17,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 
-import com.czqwq.Torcherino.Torcherino;
 import com.czqwq.Torcherino.api.interfaces.ITileEntityTickAcceleration;
 
 public class TileTorcherinoAccelerated extends TileEntity {

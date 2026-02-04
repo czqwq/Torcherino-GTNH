@@ -3,9 +3,10 @@ package com.czqwq.Torcherino.mixins;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.gtnewhorizon.gtnhmixins.ILateMixinLoader;
 import com.gtnewhorizon.gtnhmixins.LateMixin;
-import org.jetbrains.annotations.NotNull;
 
 @LateMixin
 @SuppressWarnings("unused")

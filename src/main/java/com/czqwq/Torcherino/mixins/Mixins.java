@@ -13,13 +13,12 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 public enum Mixins {
 
-    GregTech_Accelerations(
-        MixinClass.newMixinClass("Modify_BaseMTE_With_Acceleration")
-            .setClass("BaseMetaTileEntityAcceleration_Mixin")
-            .setPackagePath(PackagePath.GregTech)
-            .setPhase(Phase.LATE)
-            .addTargetMod(TargetMod.GregTech)
-            .addCondition(enableAccelerateGregTechMachine),
+    GregTech_Accelerations(MixinClass.newMixinClass("Modify_BaseMTE_With_Acceleration")
+        .setClass("BaseMetaTileEntityAcceleration_Mixin")
+        .setPackagePath(PackagePath.GregTech)
+        .setPhase(Phase.LATE)
+        .addTargetMod(TargetMod.GregTech)
+        .addCondition(enableAccelerateGregTechMachine),
         MixinClass.newMixinClass("Modify_ResearchStation_Acceleration")
             .setClass("ResearchStationAcceleration_Mixin")
             .setPackagePath(PackagePath.TecTech)
@@ -33,23 +32,20 @@ public enum Mixins {
             .setPhase(Phase.LATE)
             .addTargetMod(TargetMod.GregTech)
             .addTargetMod(TargetMod.GigaGramFab)
-            .addCondition(enableAccelerateGregTechMachine)
-    ),
+            .addCondition(enableAccelerateGregTechMachine)),
 
-    EnderIO_Accelerations(
-        MixinClass.newMixinClass("To_Accelerate_EnderIO_Machine")
-            .setClass("AccelerateTileEntity_Mixin")
-            .setPackagePath(PackagePath.EnderIO)
-            .setPhase(Phase.LATE)
-            .addTargetMod(TargetMod.EnderIO)
-            .addCondition(true),
+    EnderIO_Accelerations(MixinClass.newMixinClass("To_Accelerate_EnderIO_Machine")
+        .setClass("AccelerateTileEntity_Mixin")
+        .setPackagePath(PackagePath.EnderIO)
+        .setPhase(Phase.LATE)
+        .addTargetMod(TargetMod.EnderIO)
+        .addCondition(true),
         MixinClass.newMixinClass("Modify_Acceleration_Energy_Receive")
             .setClass("AccelerateEnergyReceive_Mixin")
             .setPackagePath(PackagePath.EnderIO)
             .setPhase(Phase.LATE)
             .addTargetMod(TargetMod.EnderIO)
-            .addCondition(true)
-    ),
+            .addCondition(true)),
 
     ;
 
@@ -76,8 +72,8 @@ public enum Mixins {
                 if (!loadedMods.containsAll(
                     mixinClass.targetMods.stream()
                         .map(TargetMod::getModId)
-                        .collect(Collectors.toSet())
-                )) continue;
+                        .collect(Collectors.toSet())))
+                    continue;
                 mixins.add(mixinClass.getMixinClassPath());
             }
         }
@@ -85,6 +81,7 @@ public enum Mixins {
     }
 
     enum PackagePath {
+
         GregTech,
         TecTech,
         EnderIO;
@@ -97,6 +94,7 @@ public enum Mixins {
     }
 
     static class MixinClass {
+
         static final String ERROR = "TORCHERINO_MIXIN_ERROR";
 
         final String id;
