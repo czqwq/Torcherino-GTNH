@@ -32,7 +32,7 @@ public class ItemTimeVial extends Item {
     public ItemTimeVial() {
         this.setMaxStackSize(1);
         this.setUnlocalizedName("timeVial");
-        this.setTextureName("torcherino:timevial");
+        this.setTextureName("torcherino:TimeVial");
     }
 
     @Override
