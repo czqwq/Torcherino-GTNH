@@ -24,6 +24,9 @@ public class Torcherino {
 
     public static boolean hasGregTech = false;
 
+    @Mod.Instance(MODID)
+    public static Torcherino instance;
+
     @SidedProxy(clientSide = "com.czqwq.Torcherino.ClientProxy", serverSide = "com.czqwq.Torcherino.CommonProxy")
     public static CommonProxy proxy;
 

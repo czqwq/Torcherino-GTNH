@@ -2,6 +2,7 @@ package com.czqwq.Torcherino.item;
 
 import net.minecraft.item.Item;
 
+import com.czqwq.Torcherino.Torcherino;
 import com.czqwq.Torcherino.entity.EntityTimeAccelerator;
 
 import cpw.mods.fml.common.registry.EntityRegistry;
@@ -20,7 +21,7 @@ public class ModItems {
             EntityTimeAccelerator.class,
             "EntityTimeAccelerator",
             0,
-            com.czqwq.Torcherino.Torcherino.class,
+            Torcherino.instance,
             80,
             3,
             true);
