@@ -2,7 +2,7 @@ tile.torcherino.name=加速火把
 tile.compressed_torcherino.name=压缩加速火把
 tile.double_compressed_torcherino.name=双重压缩加速火把
 
-item.timeVial.name=时间瓶
+item.timeVial.name=时间之瓶
 item.timeVial.time=储存时间
 
 torcherino.change_mode_area=已更改范围模式为

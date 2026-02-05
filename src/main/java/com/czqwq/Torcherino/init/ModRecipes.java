@@ -5,6 +5,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
 import com.czqwq.Torcherino.block.ModBlocks;
+import com.czqwq.Torcherino.item.ModItems;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 
@@ -42,5 +43,24 @@ public class ModRecipes {
             "TTT",
             'T',
             ModBlocks.compressedTorcherino);
+
+        // 时间瓶配方
+        GameRegistry.addShapedRecipe(
+            new ItemStack(ModItems.timeVial),
+            "ADA",
+            "ETE",
+            "GGG",
+            'E',
+            new ItemStack(Items.dye, 1, 4),
+            'B',
+            Items.glass_bottle,
+            'G',
+            Items.gold_ingot,
+            'A',
+            Items.diamond,
+            'D',
+            ModBlocks.torcherino,
+            'T',
+            Items.clock);
     }
 }
