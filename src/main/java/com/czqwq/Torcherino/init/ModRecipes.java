@@ -44,6 +44,47 @@ public class ModRecipes {
             'T',
             ModBlocks.compressedTorcherino);
 
+        // Classic compressed crafting recipes
+        GameRegistry.addShapedRecipe(
+            new ItemStack(ModBlocks.compressedTorcherinoClassic),
+            "TTT",
+            "TTT",
+            "TTT",
+            'T',
+            ModBlocks.torcherinoClassic);
+
+        GameRegistry.addShapedRecipe(
+            new ItemStack(ModBlocks.doubleCompressedTorcherinoClassic),
+            "TTT",
+            "TTT",
+            "TTT",
+            'T',
+            ModBlocks.compressedTorcherinoClassic);
+
+        // Shapeless recipes to convert normal Torcherino to Classic
+        GameRegistry
+            .addShapelessRecipe(new ItemStack(ModBlocks.torcherinoClassic), new ItemStack(ModBlocks.torcherino));
+
+        GameRegistry.addShapelessRecipe(
+            new ItemStack(ModBlocks.compressedTorcherinoClassic),
+            new ItemStack(ModBlocks.compressedTorcherino));
+
+        GameRegistry.addShapelessRecipe(
+            new ItemStack(ModBlocks.doubleCompressedTorcherinoClassic),
+            new ItemStack(ModBlocks.doubleCompressedTorcherino));
+
+        // Shapeless recipes to convert Classic back to normal Torcherino
+        GameRegistry
+            .addShapelessRecipe(new ItemStack(ModBlocks.torcherino), new ItemStack(ModBlocks.torcherinoClassic));
+
+        GameRegistry.addShapelessRecipe(
+            new ItemStack(ModBlocks.compressedTorcherino),
+            new ItemStack(ModBlocks.compressedTorcherinoClassic));
+
+        GameRegistry.addShapelessRecipe(
+            new ItemStack(ModBlocks.doubleCompressedTorcherino),
+            new ItemStack(ModBlocks.doubleCompressedTorcherinoClassic));
+
         // 时间瓶配方
         GameRegistry.addShapedRecipe(
             new ItemStack(ModItems.timeVial),
