@@ -44,6 +44,23 @@ public class ModRecipes {
             'T',
             ModBlocks.compressedTorcherino);
 
+        // Classic compressed crafting recipes
+        GameRegistry.addShapedRecipe(
+            new ItemStack(ModBlocks.compressedTorcherinoClassic),
+            "TTT",
+            "TTT",
+            "TTT",
+            'T',
+            ModBlocks.torcherinoClassic);
+
+        GameRegistry.addShapedRecipe(
+            new ItemStack(ModBlocks.doubleCompressedTorcherinoClassic),
+            "TTT",
+            "TTT",
+            "TTT",
+            'T',
+            ModBlocks.compressedTorcherinoClassic);
+
         // Shapeless recipes to convert normal Torcherino to Classic
         GameRegistry
             .addShapelessRecipe(new ItemStack(ModBlocks.torcherinoClassic), new ItemStack(ModBlocks.torcherino));

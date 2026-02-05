@@ -52,6 +52,29 @@ public class TileTorcherinoClassic extends TileEntity {
         this.rand = new Random();
     }
 
+    /**
+     * Override this in subclasses to provide different speed multipliers.
+     * Base: 1x, Compressed: 9x, Double Compressed: 81x
+     */
+    protected int getSpeedMultiplier() {
+        return 1;
+    }
+
+    /**
+     * Gets the effective acceleration speed considering the multiplier
+     */
+    protected int getEffectiveSpeed() {
+        return this.speed * getSpeedMultiplier();
+    }
+
+    protected byte getSpeed() {
+        return this.speed;
+    }
+
+    protected void setSpeed(byte speed) {
+        this.speed = speed;
+    }
+
     @Override
     public void updateEntity() {
         if (this.worldObj.isRemote) return;
@@ -68,6 +91,8 @@ public class TileTorcherinoClassic extends TileEntity {
             this.cachedMode = this.mode;
         }
 
+        int effectiveSpeed = getEffectiveSpeed();
+
         for (int x = this.xMin; x <= this.xMax; x++) {
             for (int y = this.yMin; y <= this.yMax; y++) {
                 for (int z = this.zMin; z <= this.zMax; z++) {
@@ -76,7 +101,7 @@ public class TileTorcherinoClassic extends TileEntity {
                     if (blacklist.contains(block)) continue;
 
                     if (block.getTickRandomly()) {
-                        for (int i = 0; i < this.speed; i++) {
+                        for (int i = 0; i < effectiveSpeed; i++) {
                             try {
                                 block.updateTick(this.worldObj, x, y, z, this.rand);
                             } catch (Exception e) {
@@ -91,7 +116,7 @@ public class TileTorcherinoClassic extends TileEntity {
                             && !(tile instanceof TileCompressedTorcherinoClassic)
                             && !(tile instanceof TileDoubleCompressedTorcherinoClassic)
                             && !tile.isInvalid()) {
-                            for (int i = 0; i < this.speed; i++) {
+                            for (int i = 0; i < effectiveSpeed; i++) {
                                 try {
                                     tile.updateEntity();
                                 } catch (Exception e) {
