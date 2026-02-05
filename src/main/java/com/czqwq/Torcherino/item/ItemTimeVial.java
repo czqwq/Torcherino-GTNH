@@ -154,9 +154,7 @@ public class ItemTimeVial extends Item {
         int hours = storedTimeSeconds / 3600;
         int minutes = (storedTimeSeconds % 3600) / 60;
         int seconds = storedTimeSeconds % 60;
-        list.add(
-            StatCollector.translateToLocal(
-                "item.timeVial.time") + ": " + hours + "h " + minutes + "m " + seconds + "s");
+        list.add(String.format(StatCollector.translateToLocal("item.timeVial.time"), hours, minutes, seconds));
     }
 
     @Override
@@ -167,12 +165,8 @@ public class ItemTimeVial extends Item {
         int hours = storedTimeSeconds / 3600;
         int minutes = (storedTimeSeconds % 3600) / 60;
         int seconds = storedTimeSeconds % 60;
-        return StatCollector.translateToLocal(this.getUnlocalizedNameInefficiently(stack) + ".name") + " ("
-            + hours
-            + "h "
-            + minutes
-            + "m "
-            + seconds
-            + "s)";
+        return StatCollector.translateToLocal(this.getUnlocalizedNameInefficiently(stack) + ".name") + " "
+            + String.format(StatCollector.translateToLocal("item.timeVial.time"), hours, minutes, seconds)
+            + "§r";
     }
 }

@@ -1,0 +1,2 @@
+[toolchains]
+gradle-jvm = { vendor = "adoptium", version = "17" }
