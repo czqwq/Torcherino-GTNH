@@ -11,15 +11,23 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 
+import com.cleanroommc.modularui.api.IGuiHolder;
+import com.cleanroommc.modularui.drawable.Rectangle;
+import com.cleanroommc.modularui.drawable.text.DynamicKey;
+import com.cleanroommc.modularui.factory.PosGuiData;
+import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.screen.UISettings;
+import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
+import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+import com.cleanroommc.modularui.widgets.SliderWidget;
+import com.cleanroommc.modularui.widgets.TextWidget;
 import com.czqwq.Torcherino.api.interfaces.ITileEntityTickAcceleration;
 
-public class TileTorcherinoAccelerated extends TileEntity {
+public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<PosGuiData> {
 
     // 用于存储每个世界的火把TileEntity的弱引用集合
     private static final Map<World, Set<WeakReference<TileTorcherinoAccelerated>>> torcherinosByWorld = new WeakHashMap<World, Set<WeakReference<TileTorcherinoAccelerated>>>();
@@ -27,17 +35,17 @@ public class TileTorcherinoAccelerated extends TileEntity {
     // 加速效果：0%、100%、200%、300%、400%
     private int timeRate = 0; // 0表示0%，1表示100%，2表示200%，以此类推
 
-    // 预设模式：
-    // 模式0: 3x3x3 (x=1, y=1, z=1)
-    // 模式1: 5x3x5 (x=2, y=1, z=2)
-    // 模式2: 7x3x7 (x=3, y=1, z=3)
-    // 模式3: 9x3x9 (x=4, y=1, z=4)
-    // 模式4: 停止工作
-    private byte mode;
-    private byte cachedMode = -1;
+    // 独立的X、Y、Z范围（半径）
+    private int xRadius = 1; // 默认3格范围 (半径1)
+    private int yRadius = 1; // 默认3格范围 (半径1)
+    private int zRadius = 1; // 默认3格范围 (半径1)
+
+    private byte cachedXRadius = -1;
+    private byte cachedYRadius = -1;
+    private byte cachedZRadius = -1;
 
     // 停止工作模式
-    private boolean isStopped = true;
+    private boolean isStopped = false;
 
     private boolean is_active = true;
 
@@ -69,106 +77,222 @@ public class TileTorcherinoAccelerated extends TileEntity {
         return this.is_active;
     }
 
-    public int getCurrentMode() {
-        return this.mode;
+    public int getXRadius() {
+        return this.xRadius;
     }
 
-    public int getXRadius() {
-        switch (mode) {
-            case 0:
-                return 1; // 3格范围
-            case 1:
-                return 2; // 5格范围
-            case 2:
-                return 3; // 7格范围
-            case 3:
-                return 4; // 9格范围
-            default:
-                return 1;
-        }
+    public void setXRadius(int radius) {
+        this.xRadius = Math.max(0, Math.min(radius, 4)); // X最大半径4 (9格)
+        this.markDirty();
     }
 
     public int getYRadius() {
-        // Y轴范围固定为3格（半径1）
-        return 1;
+        return this.yRadius;
+    }
+
+    public void setYRadius(int radius) {
+        this.yRadius = Math.max(0, Math.min(radius, 1)); // Y最大半径1 (3格)
+        this.markDirty();
     }
 
     public int getZRadius() {
-        return switch (mode) {
-            case 0 -> 1; // 3格范围
-            case 1 -> 2; // 5格范围
-            case 2 -> 3; // 7格范围
-            case 3 -> 4; // 9格范围
-            default -> 1;
-        };
+        return this.zRadius;
+    }
+
+    public void setZRadius(int radius) {
+        this.zRadius = Math.max(0, Math.min(radius, 4)); // Z最大半径4 (9格)
+        this.markDirty();
     }
 
     public boolean isStopped() {
         return this.isStopped;
     }
 
-    // 处理右键点击事件
-    public void onBlockActivated(EntityPlayer player) {
-        if (!player.isSneaking()) {
-            // 普通右击：切换预设模式
-            if (isStopped) {
-                // 如果当前是停止状态，切换回第一个范围模式
-                isStopped = false;
-                mode = 0;
-                player.addChatComponentMessage(
-                    new ChatComponentText(translateToLocal("torcherino.change_mode_area") + " 3x3x3"));
-            } else {
-                mode = (byte) ((mode + 1) % 5);
+    public void setStopped(boolean stopped) {
+        this.isStopped = stopped;
+        this.markDirty();
+    }
 
-                // 检查是否是停止模式（模式4）
-                if (mode == 4) {
-                    isStopped = true;
-                    player.addChatComponentMessage(new ChatComponentText(translateToLocal("torcherino.stopped")));
-                } else {
-                    String modeName = switch (mode) {
-                        case 0 -> "3x3x3";
-                        case 1 -> "5x3x5";
-                        case 2 -> "7x3x7";
-                        case 3 -> "9x3x9";
-                        default -> "";
-                    };
+    // Implement IGuiHolder interface
+    @Override
+    public ModularPanel buildUI(PosGuiData guiData, PanelSyncManager syncManager, UISettings uiSettings) {
+        ModularPanel panel = new ModularPanel("torcherino_gui");
 
-                    player.addChatComponentMessage(
-                        new ChatComponentText(translateToLocal("torcherino.change_mode_area") + " " + modeName));
-                }
-            }
-        } else {
-            // Shift右击：切换加速效果 (0%、100%、200%、300%、400%)
-            timeRate = (timeRate + 1) % 5; // 0-4循环，对应0%、100%、200%、300%、400%
-            if (timeRate == 0) {
-                player.addChatComponentMessage(
-                    new ChatComponentText(
-                        translateToLocal("torcherino.change_mode_speed") + " "
-                            + translateToLocal("torcherino.stopped")));
-            } else {
-                player.addChatComponentMessage(
-                    new ChatComponentText(
-                        translateToLocal("torcherino.change_mode_speed") + " " + (timeRate * 100) + "%"));
-            }
-        }
+        // Sync speed value (convert int to double for slider)
+        DoubleSyncValue speedValue = new DoubleSyncValue(() -> (double) timeRate, val -> {
+            timeRate = (int) Math.round(val);
+            markDirty();
+        });
+        // Note: SliderWidget will auto-sync, so we don't call syncManager.syncValue() manually
+
+        // Sync X radius value
+        DoubleSyncValue xRadiusValue = new DoubleSyncValue(
+            () -> (double) xRadius,
+            val -> { setXRadius((int) Math.round(val)); });
+
+        // Sync Y radius value
+        DoubleSyncValue yRadiusValue = new DoubleSyncValue(
+            () -> (double) yRadius,
+            val -> { setYRadius((int) Math.round(val)); });
+
+        // Sync Z radius value
+        DoubleSyncValue zRadiusValue = new DoubleSyncValue(
+            () -> (double) zRadius,
+            val -> { setZRadius((int) Math.round(val)); });
+
+        // Gray background for sliders
+        Rectangle sliderBg = new Rectangle().setColor(0xFF3A3A3A);
+
+        // Title
+        panel.child(
+            new TextWidget(translateToLocal("torcherino.gui.title")).left(8)
+                .top(6));
+
+        // Speed slider label
+        panel.child(
+            new TextWidget(translateToLocal("torcherino.gui.speed")).left(8)
+                .top(22));
+
+        // Speed slider (0-4: 0%, 100%, 200%, 300%, 400%)
+        panel.child(
+            new SliderWidget().value(speedValue)
+                .bounds(0, 4)
+                .background(sliderBg)
+                .left(8)
+                .top(32)
+                .width(160)
+                .height(10));
+
+        // Speed display
+        panel.child(
+            new TextWidget(
+                new DynamicKey(
+                    () -> speedValue.getDoubleValue() == 0.0 ? "0%" : ((int) speedValue.getDoubleValue() * 100) + "%"))
+                        .left(78)
+                        .top(44));
+
+        // X Range slider label
+        panel.child(
+            new TextWidget(translateToLocal("torcherino.gui.x_range")).left(8)
+                .top(58));
+
+        // X Range slider (0-4: 1-9 blocks)
+        panel.child(
+            new SliderWidget().value(xRadiusValue)
+                .bounds(0, 4)
+                .background(sliderBg)
+                .left(8)
+                .top(68)
+                .width(160)
+                .height(10));
+
+        // X Range display
+        panel.child(
+            new TextWidget(new DynamicKey(() -> (int) xRadiusValue.getDoubleValue() * 2 + 1 + "")).left(78)
+                .top(80));
+
+        // Y Range slider label
+        panel.child(
+            new TextWidget(translateToLocal("torcherino.gui.y_range")).left(8)
+                .top(94));
+
+        // Y Range slider (0-1: 1-3 blocks)
+        panel.child(
+            new SliderWidget().value(yRadiusValue)
+                .bounds(0, 1)
+                .background(sliderBg)
+                .left(8)
+                .top(104)
+                .width(160)
+                .height(10));
+
+        // Y Range display
+        panel.child(
+            new TextWidget(new DynamicKey(() -> (int) yRadiusValue.getDoubleValue() * 2 + 1 + "")).left(78)
+                .top(116));
+
+        // Z Range slider label
+        panel.child(
+            new TextWidget(translateToLocal("torcherino.gui.z_range")).left(8)
+                .top(130));
+
+        // Z Range slider (0-4: 1-9 blocks)
+        panel.child(
+            new SliderWidget().value(zRadiusValue)
+                .bounds(0, 4)
+                .background(sliderBg)
+                .left(8)
+                .top(140)
+                .width(160)
+                .height(10));
+
+        // Z Range display
+        panel.child(
+            new TextWidget(new DynamicKey(() -> (int) zRadiusValue.getDoubleValue() * 2 + 1 + "")).left(78)
+                .top(152));
+
+        // Overall range display
+        panel.child(new TextWidget(new DynamicKey(() -> {
+            int x = (int) xRadiusValue.getDoubleValue() * 2 + 1;
+            int y = (int) yRadiusValue.getDoubleValue() * 2 + 1;
+            int z = (int) zRadiusValue.getDoubleValue() * 2 + 1;
+            return x + "x" + y + "x" + z;
+        })).left(8)
+            .top(166));
+
+        return panel;
     }
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
-        mode = compound.getByte("Mode");
         timeRate = compound.getInteger("TimeRate");
         isStopped = compound.getBoolean("IsStopped");
         is_active = compound.getBoolean("IsActive");
+        xRadius = compound.getInteger("XRadius");
+        yRadius = compound.getInteger("YRadius");
+        zRadius = compound.getInteger("ZRadius");
+
+        // Backwards compatibility: if old Mode exists, convert it
+        if (compound.hasKey("Mode")) {
+            byte oldMode = compound.getByte("Mode");
+            switch (oldMode) {
+                case 0:
+                    xRadius = 1;
+                    yRadius = 1;
+                    zRadius = 1;
+                    break;
+                case 1:
+                    xRadius = 2;
+                    yRadius = 1;
+                    zRadius = 2;
+                    break;
+                case 2:
+                    xRadius = 3;
+                    yRadius = 1;
+                    zRadius = 3;
+                    break;
+                case 3:
+                    xRadius = 4;
+                    yRadius = 1;
+                    zRadius = 4;
+                    break;
+                case 4:
+                    isStopped = true;
+                    break;
+            }
+        }
     }
 
     @Override
     public void writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
-        compound.setByte("Mode", mode);
         compound.setInteger("TimeRate", timeRate);
         compound.setBoolean("IsStopped", isStopped);
         compound.setBoolean("IsActive", is_active);
+        compound.setInteger("XRadius", xRadius);
+        compound.setInteger("YRadius", yRadius);
+        compound.setInteger("ZRadius", zRadius);
     }
 
     @Override
@@ -193,9 +317,9 @@ public class TileTorcherinoAccelerated extends TileEntity {
 
         if (this.worldObj.isRemote || !this.is_active || isStopped || timeRate == 0) return;
 
-        // 只有当模式改变时才更新缓存的边界值
-        if (cachedMode != mode) {
-            updateCachedMode();
+        // 只有当范围改变时才更新缓存的边界值
+        if (cachedXRadius != xRadius || cachedYRadius != yRadius || cachedZRadius != zRadius) {
+            updateCachedBounds();
         }
 
         // 加速区域内的方块和TileEntity
@@ -208,14 +332,16 @@ public class TileTorcherinoAccelerated extends TileEntity {
         }
     }
 
-    private void updateCachedMode() {
-        xMin = this.xCoord - getXRadius();
-        yMin = this.yCoord - getYRadius();
-        zMin = this.zCoord - getZRadius();
-        xMax = this.xCoord + getXRadius();
-        yMax = this.yCoord + getYRadius();
-        zMax = this.zCoord + getZRadius();
-        cachedMode = mode;
+    private void updateCachedBounds() {
+        xMin = this.xCoord - xRadius;
+        yMin = this.yCoord - yRadius;
+        zMin = this.zCoord - zRadius;
+        xMax = this.xCoord + xRadius;
+        yMax = this.yCoord + yRadius;
+        zMax = this.zCoord + zRadius;
+        cachedXRadius = (byte) xRadius;
+        cachedYRadius = (byte) yRadius;
+        cachedZRadius = (byte) zRadius;
     }
 
     @Override

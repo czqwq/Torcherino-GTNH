@@ -11,6 +11,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
+import com.cleanroommc.modularui.factory.TileEntityGuiFactory;
 import com.czqwq.Torcherino.Torcherino;
 import com.czqwq.Torcherino.tile.TileDoubleCompressedTorcherino;
 
@@ -45,11 +46,7 @@ public class BlockDoubleCompressedTorcherino extends BlockTorch implements ITile
             TileEntity tile = world.getTileEntity(x, y, z);
 
             if (tile instanceof TileDoubleCompressedTorcherino) {
-                TileDoubleCompressedTorcherino torch = (TileDoubleCompressedTorcherino) tile;
-
-                // 如果玩家没有潜行，切换X轴范围
-                // 如果玩家潜行，根据计数器切换Z轴范围、Y轴范围或加速效果
-                torch.onBlockActivated(player);
+                TileEntityGuiFactory.INSTANCE.open(player, (TileDoubleCompressedTorcherino) tile);
             }
         }
 

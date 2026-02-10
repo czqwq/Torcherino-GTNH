@@ -12,6 +12,12 @@ torcherino.change_mode_area=已更改范围模式为
 torcherino.change_mode_speed=已更改速度模式为
 torcherino.stopped=已停止
 
+torcherino.gui.title=加速火把
+torcherino.gui.speed=速度
+torcherino.gui.x_range=X范围
+torcherino.gui.y_range=Y范围
+torcherino.gui.z_range=Z范围
+
 gui.torcherino.speed=速度:
 gui.torcherino.x_range=X范围:
 gui.torcherino.y_range=Y范围:
