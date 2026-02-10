@@ -11,15 +11,22 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 
+import com.cleanroommc.modularui.api.IGuiHolder;
+import com.cleanroommc.modularui.drawable.text.DynamicKey;
+import com.cleanroommc.modularui.factory.PosGuiData;
+import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.screen.UISettings;
+import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
+import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+import com.cleanroommc.modularui.widgets.SliderWidget;
+import com.cleanroommc.modularui.widgets.TextWidget;
 import com.czqwq.Torcherino.api.interfaces.ITileEntityTickAcceleration;
 
-public class TileTorcherinoAccelerated extends TileEntity {
+public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<PosGuiData> {
 
     // 用于存储每个世界的火把TileEntity的弱引用集合
     private static final Map<World, Set<WeakReference<TileTorcherinoAccelerated>>> torcherinosByWorld = new WeakHashMap<World, Set<WeakReference<TileTorcherinoAccelerated>>>();
@@ -107,50 +114,72 @@ public class TileTorcherinoAccelerated extends TileEntity {
         return this.isStopped;
     }
 
-    // 处理右键点击事件
-    public void onBlockActivated(EntityPlayer player) {
-        if (!player.isSneaking()) {
-            // 普通右击：切换预设模式
-            if (isStopped) {
-                // 如果当前是停止状态，切换回第一个范围模式
-                isStopped = false;
-                mode = 0;
-                player.addChatComponentMessage(
-                    new ChatComponentText(translateToLocal("torcherino.change_mode_area") + " 3x3x3"));
-            } else {
-                mode = (byte) ((mode + 1) % 5);
+    public void setMode(int newMode) {
+        this.mode = (byte) newMode;
+        this.isStopped = (newMode == 4);
+        this.markDirty();
+    }
 
-                // 检查是否是停止模式（模式4）
-                if (mode == 4) {
-                    isStopped = true;
-                    player.addChatComponentMessage(new ChatComponentText(translateToLocal("torcherino.stopped")));
-                } else {
-                    String modeName = switch (mode) {
-                        case 0 -> "3x3x3";
-                        case 1 -> "5x3x5";
-                        case 2 -> "7x3x7";
-                        case 3 -> "9x3x9";
-                        default -> "";
-                    };
+    // Implement IGuiHolder interface
+    @Override
+    public ModularPanel buildUI(PosGuiData guiData, PanelSyncManager syncManager, UISettings uiSettings) {
+        ModularPanel panel = new ModularPanel("torcherino_gui");
 
-                    player.addChatComponentMessage(
-                        new ChatComponentText(translateToLocal("torcherino.change_mode_area") + " " + modeName));
-                }
-            }
-        } else {
-            // Shift右击：切换加速效果 (0%、100%、200%、300%、400%)
-            timeRate = (timeRate + 1) % 5; // 0-4循环，对应0%、100%、200%、300%、400%
-            if (timeRate == 0) {
-                player.addChatComponentMessage(
-                    new ChatComponentText(
-                        translateToLocal("torcherino.change_mode_speed") + " "
-                            + translateToLocal("torcherino.stopped")));
-            } else {
-                player.addChatComponentMessage(
-                    new ChatComponentText(
-                        translateToLocal("torcherino.change_mode_speed") + " " + (timeRate * 100) + "%"));
-            }
-        }
+        // Sync speed value (convert int to double for slider)
+        DoubleSyncValue speedValue = new DoubleSyncValue(() -> (double) timeRate, val -> {
+            timeRate = (int) Math.round(val);
+            markDirty();
+        });
+        syncManager.syncValue("speed", speedValue);
+
+        // Sync mode value (convert byte to double for slider)
+        DoubleSyncValue modeValue = new DoubleSyncValue(
+            () -> (double) mode,
+            val -> { setMode((int) Math.round(val)); });
+        syncManager.syncValue("mode", modeValue);
+
+        // Title
+        panel.child(
+            new TextWidget(translateToLocal("torcherino.gui.title")).left(8)
+                .top(6));
+
+        // Speed slider label
+        panel.child(
+            new TextWidget(translateToLocal("torcherino.gui.speed")).left(8)
+                .top(25));
+
+        // Speed slider (0-4: 0%, 100%, 200%, 300%, 400%)
+        panel.child(
+            new SliderWidget().value(speedValue)
+                .bounds(0, 4)
+                .left(8)
+                .top(37)
+                .width(160)
+                .height(10));
+
+        // Speed display
+        panel.child(
+            new TextWidget(
+                new DynamicKey(
+                    () -> speedValue.getDoubleValue() == 0.0 ? "0%" : ((int) speedValue.getDoubleValue() * 100) + "%"))
+                        .left(78)
+                        .top(50));
+
+        // Range slider label
+        panel.child(
+            new TextWidget(translateToLocal("torcherino.gui.range")).left(8)
+                .top(62));
+
+        // Range slider (0-4: 3x3x3, 5x3x5, 7x3x7, 9x3x9, Stopped)
+        panel.child(
+            new SliderWidget().value(modeValue)
+                .bounds(0, 4)
+                .left(8)
+                .top(74)
+                .width(160)
+                .height(10));
+
+        return panel;
     }
 
     @Override

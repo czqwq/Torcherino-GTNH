@@ -11,6 +11,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
+import com.cleanroommc.modularui.factory.TileEntityGuiFactory;
 import com.czqwq.Torcherino.Torcherino;
 import com.czqwq.Torcherino.tile.TileTorcherinoAccelerated;
 
@@ -45,11 +46,7 @@ public class BlockTorcherino extends BlockTorch implements ITileEntityProvider {
             TileEntity tile = world.getTileEntity(x, y, z);
 
             if (tile instanceof TileTorcherinoAccelerated) {
-                TileTorcherinoAccelerated torch = (TileTorcherinoAccelerated) tile;
-
-                // 如果玩家没有潜行，切换激活状态
-                // 如果玩家潜行，调整加速效果
-                torch.onBlockActivated(player);
+                TileEntityGuiFactory.INSTANCE.open(player, (TileTorcherinoAccelerated) tile);
             }
         }
 

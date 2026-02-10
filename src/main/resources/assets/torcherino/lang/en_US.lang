@@ -13,6 +13,11 @@ torcherino.change_mode_area=Changed area mode to
 torcherino.change_mode_speed=Changed speed mode to
 torcherino.stopped=Stopped
 
+#GUI
+torcherino.gui.title=Torcherino
+torcherino.gui.speed=Speed
+torcherino.gui.range=Range
+
 #incoming
 gui.torcherino.speed=Speed:
 gui.torcherino.x_range=X Range:
