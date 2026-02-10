@@ -109,13 +109,13 @@ public class TileDoubleCompressedTorcherino extends TileEntity implements IGuiHo
             timeRate = (int) Math.round(val) * 81;
             markDirty();
         });
-        syncManager.syncValue("speed", speedValue);
+        // Note: SliderWidget will auto-sync, so we don't call syncManager.syncValue() manually
 
         // Sync mode value (convert byte to double for slider)
         DoubleSyncValue modeValue = new DoubleSyncValue(
             () -> (double) mode,
             val -> { setMode((int) Math.round(val)); });
-        syncManager.syncValue("mode", modeValue);
+        // Note: SliderWidget will auto-sync, so we don't call syncManager.syncValue() manually
 
         // Title
         panel.child(
