@@ -82,7 +82,7 @@ public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<
     }
 
     public void setXRadius(int radius) {
-        this.xRadius = Math.max(0, Math.min(radius, 16)); // 限制在0-16之间
+        this.xRadius = Math.max(0, Math.min(radius, 4)); // X最大半径4 (9格)
         this.markDirty();
     }
 
@@ -91,7 +91,7 @@ public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<
     }
 
     public void setYRadius(int radius) {
-        this.yRadius = Math.max(0, Math.min(radius, 16)); // 限制在0-16之间
+        this.yRadius = Math.max(0, Math.min(radius, 1)); // Y最大半径1 (3格)
         this.markDirty();
     }
 
@@ -100,7 +100,7 @@ public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<
     }
 
     public void setZRadius(int radius) {
-        this.zRadius = Math.max(0, Math.min(radius, 16)); // 限制在0-16之间
+        this.zRadius = Math.max(0, Math.min(radius, 4)); // Z最大半径4 (9格)
         this.markDirty();
     }
 
@@ -176,10 +176,10 @@ public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<
             new TextWidget(translateToLocal("torcherino.gui.x_range")).left(8)
                 .top(58));
 
-        // X Range slider (0-16)
+        // X Range slider (0-4: 1-9 blocks)
         panel.child(
             new SliderWidget().value(xRadiusValue)
-                .bounds(0, 16)
+                .bounds(0, 4)
                 .background(sliderBg)
                 .left(8)
                 .top(68)
@@ -196,10 +196,10 @@ public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<
             new TextWidget(translateToLocal("torcherino.gui.y_range")).left(8)
                 .top(94));
 
-        // Y Range slider (0-16)
+        // Y Range slider (0-1: 1-3 blocks)
         panel.child(
             new SliderWidget().value(yRadiusValue)
-                .bounds(0, 16)
+                .bounds(0, 1)
                 .background(sliderBg)
                 .left(8)
                 .top(104)
@@ -216,10 +216,10 @@ public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<
             new TextWidget(translateToLocal("torcherino.gui.z_range")).left(8)
                 .top(130));
 
-        // Z Range slider (0-16)
+        // Z Range slider (0-4: 1-9 blocks)
         panel.child(
             new SliderWidget().value(zRadiusValue)
-                .bounds(0, 16)
+                .bounds(0, 4)
                 .background(sliderBg)
                 .left(8)
                 .top(140)
