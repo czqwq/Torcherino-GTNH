@@ -149,7 +149,6 @@ Torcherino 是一个能够加速周围方块运行速度的魔法火把模组。
 
 - 感谢 [MockTurtle7/Torcherino](https://github.com/MockTurtle7/Torcherino) 提供的原始代码
 - 感谢 NH-Utilities 提供的加速优化方案
-- 感谢 GTNH 开发团队的支持
 
 ## 📝 开源协议
 
