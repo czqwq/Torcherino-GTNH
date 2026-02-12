@@ -149,7 +149,6 @@ This mod uses advanced Mixin technology to optimize GregTech machine acceleratio
 
 - Thanks to [MockTurtle7/Torcherino](https://github.com/MockTurtle7/Torcherino) for the original code
 - Thanks to NH-Utilities for acceleration optimization solutions
-- Thanks to GTNH development team for support
 
 ## 📝 License
 
