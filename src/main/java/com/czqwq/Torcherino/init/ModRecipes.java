@@ -84,6 +84,24 @@ public class ModRecipes {
         GameRegistry.addShapelessRecipe(
             new ItemStack(ModBlocks.doubleCompressedTorcherino),
             new ItemStack(ModBlocks.doubleCompressedTorcherinoClassic));
+        // Time Twister recipe
+        GameRegistry.addShapedRecipe(
+            new ItemStack(ModItems.imperfectTimeTwister),
+            "ADA",
+            "EBE",
+            "GTG",
+            'A',
+            Items.emerald,
+            'D',
+            Items.clock,
+            'E',
+            Items.redstone,
+            'B',
+            Items.glass_bottle,
+            'G',
+            Items.diamond,
+            'T',
+            Items.nether_star);
 
         // 时间瓶配方
         GameRegistry.addShapedRecipe(
