@@ -11,10 +11,14 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class ModItems {
 
     public static Item timeVial;
+    public static Item imperfectTimeTwister;
 
     public static void init() {
         timeVial = new ItemTimeVial();
         GameRegistry.registerItem(timeVial, "timeVial");
+
+        imperfectTimeTwister = new ItemImperfectTimeTwister();
+        GameRegistry.registerItem(imperfectTimeTwister, "imperfectTimeTwister");
 
         // Register EntityTimeAccelerator
         EntityRegistry.registerModEntity(

@@ -8,6 +8,13 @@ tile.double_compressed_torcherino_classic.name=Double Compressed Torcherino (Cla
 item.timeVial.name=Time Vial
 item.timeVial.time=§ftime: §6%d hours §d%d minutes §a%d seconds
 
+item.imperfectTimeTwister.name=Imperfect Time Twister
+item.imperfectTimeTwister.durability=§fDurability: §a%d§f/§a%d
+item.imperfectTimeTwister.success=§aSuccessfully accelerated the machine!
+item.imperfectTimeTwister.noDurability=§cInsufficient durability, please wait for recovery!
+item.imperfectTimeTwister.notWorking=§cMachine is not running or has no progress to accelerate!
+item.imperfectTimeTwister.notGTMachine=§cThis is not a GregTech machine!
+
 #test
 torcherino.change_mode_area=Changed area mode to
 torcherino.change_mode_speed=Changed speed mode to
