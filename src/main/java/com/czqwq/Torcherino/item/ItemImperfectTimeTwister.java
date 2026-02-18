@@ -58,7 +58,8 @@ public class ItemImperfectTimeTwister extends Item {
                 IMetaTileEntity metaTileEntity = baseMetaTileEntity.getMetaTileEntity();
 
                 if (maxProgress >= 2) {
-                    // Calculate 50% acceleration (rounded down)
+                    // Calculate 50% acceleration of REMAINING time (rounded down)
+                    // Formula: (total work time - current time) * 50%
                     int accelerationAmount = (int) ((maxProgress - currentProgress) * ACCELERATION_RATE);
 
                     if (accelerationAmount > 0) {
