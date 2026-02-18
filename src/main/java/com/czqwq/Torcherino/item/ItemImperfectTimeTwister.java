@@ -15,11 +15,13 @@ import com.czqwq.Torcherino.Torcherino;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import ggfab.mte.MTEAdvAssLine;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEBasicMachine;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.common.tileentities.machines.multi.MTEBrickedBlastFurnace;
+import tectech.thing.metaTileEntity.multi.MTEResearchStation;
 
 public class ItemImperfectTimeTwister extends Item {
 
@@ -57,6 +59,16 @@ public class ItemImperfectTimeTwister extends Item {
                 int maxProgress = baseMetaTileEntity.getMaxProgress();
                 IMetaTileEntity metaTileEntity = baseMetaTileEntity.getMetaTileEntity();
 
+                // Check for specialized machines that cannot be accelerated
+                if (metaTileEntity instanceof MTEAdvAssLine || metaTileEntity instanceof MTEResearchStation) {
+                    if (player != null) {
+                        player.addChatMessage(
+                            new ChatComponentText(
+                                StatCollector.translateToLocal("item.imperfectTimeTwister.cannotAccelerate")));
+                    }
+                    return true;
+                }
+
                 if (maxProgress >= 2) {
                     // Calculate 50% acceleration of REMAINING time (rounded down)
                     // Formula: (total work time - current time) * 50%
@@ -82,13 +94,12 @@ public class ItemImperfectTimeTwister extends Item {
                             // Consume 1 durability
                             consumeDurability(stack, 1);
 
-                            // Play sound effect
-                            world.playSoundEffect(x + 0.5D, y + 0.5D, z + 0.5D, "note.pling", 0.5F, 1.0F);
-
                             if (player != null) {
                                 player.addChatMessage(
                                     new ChatComponentText(
-                                        StatCollector.translateToLocal("item.imperfectTimeTwister.success")));
+                                        String.format(
+                                            StatCollector.translateToLocal("item.imperfectTimeTwister.success"),
+                                            accelerationAmount)));
                             }
                             return true;
                         }

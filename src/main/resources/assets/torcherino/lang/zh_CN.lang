@@ -10,10 +10,11 @@ item.timeVial.time=§f时间: §6%d 小时 §d%d 分钟 §a%d 秒
 
 item.imperfectTimeTwister.name=有损的时间扭曲者
 item.imperfectTimeTwister.durability=§f耐久: §a%d§f/§a%d
-item.imperfectTimeTwister.success=§a成功加速了机器!
+item.imperfectTimeTwister.success=§a成功加速了%dtick
 item.imperfectTimeTwister.noDurability=§c耐久不足,请等待恢复!
 item.imperfectTimeTwister.notWorking=§c机器未运行或无进度可加速!
 item.imperfectTimeTwister.notGTMachine=§c这不是格雷科技机器!
+item.imperfectTimeTwister.cannotAccelerate=§c无法加速该GT机器
 
 torcherino.change_mode_area=已更改范围模式为
 torcherino.change_mode_speed=已更改速度模式为

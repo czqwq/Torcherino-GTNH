@@ -10,10 +10,11 @@ item.timeVial.time=§ftime: §6%d hours §d%d minutes §a%d seconds
 
 item.imperfectTimeTwister.name=Imperfect Time Twister
 item.imperfectTimeTwister.durability=§fDurability: §a%d§f/§a%d
-item.imperfectTimeTwister.success=§aSuccessfully accelerated the machine!
+item.imperfectTimeTwister.success=§aSuccessfully accelerated %d ticks
 item.imperfectTimeTwister.noDurability=§cInsufficient durability, please wait for recovery!
 item.imperfectTimeTwister.notWorking=§cMachine is not running or has no progress to accelerate!
 item.imperfectTimeTwister.notGTMachine=§cThis is not a GregTech machine!
+item.imperfectTimeTwister.cannotAccelerate=§cCannot accelerate this GT machine
 
 #test
 torcherino.change_mode_area=Changed area mode to
