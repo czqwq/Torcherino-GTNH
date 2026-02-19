@@ -16,6 +16,14 @@ item.imperfectTimeTwister.notWorking=§cMachine is not running or has no progres
 item.imperfectTimeTwister.notGTMachine=§cThis is not a GregTech machine!
 item.imperfectTimeTwister.cannotAccelerate=§cCannot accelerate this GT machine
 
+item.perfectTimeTwister.name=Perfect Time Twister
+item.perfectTimeTwister.description=§bConsumes wireless EU to instantly complete GT machine recipes
+item.perfectTimeTwister.success=§aSuccessfully consumed §6%s EU§a and skipped §e%d ticks
+item.perfectTimeTwister.insufficientEU=§cInsufficient wireless EU (need §6%s EU§c), cannot accelerate!
+item.perfectTimeTwister.notWorking=§cMachine is not running or has no progress to accelerate!
+item.perfectTimeTwister.notGTMachine=§cThis is not a GregTech machine!
+item.perfectTimeTwister.cannotAccelerate=§cCannot accelerate this GT machine
+
 #test
 torcherino.change_mode_area=Changed area mode to
 torcherino.change_mode_speed=Changed speed mode to
