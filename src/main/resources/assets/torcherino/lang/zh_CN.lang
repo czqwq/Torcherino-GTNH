@@ -16,6 +16,14 @@ item.imperfectTimeTwister.notWorking=§c机器未运行或无进度可加速!
 item.imperfectTimeTwister.notGTMachine=§c这不是格雷科技机器!
 item.imperfectTimeTwister.cannotAccelerate=§c无法加速该GT机器
 
+item.perfectTimeTwister.name=完美时间扭曲者
+item.perfectTimeTwister.description=§b消耗无线电网EU以立即完成GT机器配方
+item.perfectTimeTwister.success=§a成功消耗 §6%s EU§a，减少了 §e%d tick
+item.perfectTimeTwister.insufficientEU=§c当前无线量不足(需要 §6%s EU§c)，无法加速!
+item.perfectTimeTwister.notWorking=§c机器未运行或无进度可加速!
+item.perfectTimeTwister.notGTMachine=§c这不是格雷科技机器!
+item.perfectTimeTwister.cannotAccelerate=§c无法加速该GT机器
+
 torcherino.change_mode_area=已更改范围模式为
 torcherino.change_mode_speed=已更改速度模式为
 torcherino.stopped=已停止

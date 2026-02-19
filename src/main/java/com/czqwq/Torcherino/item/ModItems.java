@@ -12,6 +12,7 @@ public class ModItems {
 
     public static Item timeVial;
     public static Item imperfectTimeTwister;
+    public static Item perfectTimeTwister;
 
     public static void init() {
         timeVial = new ItemTimeVial();
@@ -19,6 +20,9 @@ public class ModItems {
 
         imperfectTimeTwister = new ItemImperfectTimeTwister();
         GameRegistry.registerItem(imperfectTimeTwister, "imperfectTimeTwister");
+
+        perfectTimeTwister = new ItemPerfectTimeTwister();
+        GameRegistry.registerItem(perfectTimeTwister, "perfectTimeTwister");
 
         // Register EntityTimeAccelerator
         EntityRegistry.registerModEntity(
