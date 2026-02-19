@@ -15,6 +15,7 @@ item.imperfectTimeTwister.noDurability=§cInsufficient durability, please wait f
 item.imperfectTimeTwister.notWorking=§cMachine is not running or has no progress to accelerate!
 item.imperfectTimeTwister.notGTMachine=§cThis is not a GregTech machine!
 item.imperfectTimeTwister.cannotAccelerate=§cCannot accelerate this GT machine
+item.imperfectTimeTwister.cannotAccelerateGenerator=§cCannot accelerate current GT generator
 
 item.perfectTimeTwister.name=Perfect Time Twister
 item.perfectTimeTwister.description=§bConsumes wireless EU to instantly complete GT machine recipes
@@ -23,6 +24,8 @@ item.perfectTimeTwister.insufficientEU=§cInsufficient wireless EU (need §6%s E
 item.perfectTimeTwister.notWorking=§cMachine is not running or has no progress to accelerate!
 item.perfectTimeTwister.notGTMachine=§cThis is not a GregTech machine!
 item.perfectTimeTwister.cannotAccelerate=§cCannot accelerate this GT machine
+item.perfectTimeTwister.cannotAccelerateGenerator=§cCannot accelerate current GT generator
+item.perfectTimeTwister.accelerationFailed=§cAcceleration failed, see logs for details
 item.perfectTimeTwister.advAssLineSliceStuck=§cThe current assembly line slice is stuck (waiting for inputs), cannot accelerate!
 
 #test

@@ -4,3 +4,7 @@ tile.double_compressed_torcherino.name=이중 압축 토쳐리노
 torcherino.change_mode_area=영역 설정:
 torcherino.change_mode_speed=속도 설정:
 torcherino.stopped=토쳐리노 정지됨
+
+item.imperfectTimeTwister.cannotAccelerateGenerator=§c현재 GT 발전기를 가속할 수 없습니다
+item.perfectTimeTwister.cannotAccelerateGenerator=§c현재 GT 발전기를 가속할 수 없습니다
+item.perfectTimeTwister.accelerationFailed=§c가속 실패, 자세한 내용은 로그를 확인하세요

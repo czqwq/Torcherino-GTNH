@@ -21,6 +21,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import ggfab.mte.MTEAdvAssLine;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
+import gregtech.api.metatileentity.implementations.MTEBasicGenerator;
 import gregtech.api.metatileentity.implementations.MTEBasicMachine;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
@@ -61,6 +62,16 @@ public class ItemPerfectTimeTwister extends Item {
                     return true;
                 }
 
+                // Block GT generators (single-block and multi-block)
+                if (isGTGenerator(metaTileEntity)) {
+                    if (player != null) {
+                        player.addChatMessage(
+                            new ChatComponentText(
+                                StatCollector.translateToLocal("item.perfectTimeTwister.cannotAccelerateGenerator")));
+                    }
+                    return true;
+                }
+
                 // Handle Advanced Assembly Line (slice-based structure)
                 if (metaTileEntity instanceof MTEAdvAssLine) {
                     return handleAdvAssLine(player, baseMetaTileEntity, metaTileEntity, currentProgress, maxProgress);
@@ -96,6 +107,35 @@ public class ItemPerfectTimeTwister extends Item {
                             BigInteger euCost = BigInteger.valueOf(4L)
                                 .multiply(BigInteger.valueOf(remainingTicks))
                                 .multiply(BigInteger.valueOf(mEUt));
+
+                            // Guard: 0-EU cost means mEUt == 0 (power deduction failed),
+                            // do not allow free acceleration
+                            if (euCost.compareTo(BigInteger.ZERO) == 0) {
+                                Torcherino.LOG.debug(
+                                    "PerfectTimeTwister: 0 EU cost at ({}, {}, {}). "
+                                        + "Machine={}, mEUt={}, currentProgress={}, maxProgress={}, "
+                                        + "remainingTicks={}, formula: 4 * {} * {} = {}",
+                                    baseMetaTileEntity.xCoord,
+                                    baseMetaTileEntity.yCoord,
+                                    baseMetaTileEntity.zCoord,
+                                    metaTileEntity.getClass()
+                                        .getName(),
+                                    mEUt,
+                                    currentProgress,
+                                    maxProgress,
+                                    remainingTicks,
+                                    remainingTicks,
+                                    mEUt,
+                                    euCost,
+                                    new Throwable("0 EU cost stack trace"));
+                                if (player != null) {
+                                    player.addChatMessage(
+                                        new ChatComponentText(
+                                            StatCollector
+                                                .translateToLocal("item.perfectTimeTwister.accelerationFailed")));
+                                }
+                                return true;
+                            }
 
                             // Ensure user exists in wireless network
                             WirelessNetworkManager.strongCheckOrAddUser(player.getUniqueID());
@@ -338,6 +378,18 @@ public class ItemPerfectTimeTwister extends Item {
 
     @Override
     public boolean isDamageable() {
+        return false;
+    }
+
+    /**
+     * Returns true if the given IMetaTileEntity is a GT generator (single-block or multi-block).
+     * Single-block generators extend {@link MTEBasicGenerator}.
+     * Multi-block generators set mEUt > 0 (or lEUt > 0 for extended-power machines) while running.
+     */
+    private static boolean isGTGenerator(IMetaTileEntity metaTileEntity) {
+        if (metaTileEntity instanceof MTEBasicGenerator) return true;
+        if (metaTileEntity instanceof MTEExtendedPowerMultiBlockBase<?>extMulti) return extMulti.lEUt > 0;
+        if (metaTileEntity instanceof MTEMultiBlockBase multiBlock) return multiBlock.mEUt > 0;
         return false;
     }
 }
