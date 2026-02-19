@@ -3,10 +3,13 @@ package com.czqwq.Torcherino;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.czqwq.Torcherino.init.GTRecipes;
+
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
@@ -56,5 +59,11 @@ public class Torcherino {
     // register server commands in this event handler (Remove if not needed)
     public void serverStarting(FMLServerStartingEvent event) {
         proxy.serverStarting(event);
+    }
+
+    @Mod.EventHandler
+    public void completeInit(FMLLoadCompleteEvent event) {
+        GTRecipes.loadRecipes();
+        // load GT recipes here, after all mods have loaded and registered their items/blocks/fluids/etc.
     }
 }
