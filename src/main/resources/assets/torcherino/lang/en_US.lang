@@ -23,6 +23,7 @@ item.perfectTimeTwister.insufficientEU=§cInsufficient wireless EU (need §6%s E
 item.perfectTimeTwister.notWorking=§cMachine is not running or has no progress to accelerate!
 item.perfectTimeTwister.notGTMachine=§cThis is not a GregTech machine!
 item.perfectTimeTwister.cannotAccelerate=§cCannot accelerate this GT machine
+item.perfectTimeTwister.advAssLineSliceStuck=§cThe current assembly line slice is stuck (waiting for inputs), cannot accelerate!
 
 #test
 torcherino.change_mode_area=Changed area mode to
