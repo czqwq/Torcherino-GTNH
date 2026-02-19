@@ -11,16 +11,20 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.czqwq.Torcherino.api.interfaces.mixinHelper.IAccelerationState;
+import com.czqwq.Torcherino.api.interfaces.mixinHelper.IAdvAssLineInfo;
 
 import ggfab.mte.MTEAdvAssLine;
 
 @Pseudo
 @Mixin(value = MTEAdvAssLine.class, remap = false)
 @SuppressWarnings({ "UnusedMixin", "AddedMixinMembersNamePattern" })
-public abstract class MTEAdvAssLineAcceleration_Mixin implements IAccelerationState {
+public abstract class MTEAdvAssLineAcceleration_Mixin implements IAccelerationState, IAdvAssLineInfo {
 
     @Shadow
     private boolean stuck;
+
+    @Shadow
+    private int currentInputLength;
 
     @Unique
     private boolean isAccelerationState;
@@ -33,6 +37,11 @@ public abstract class MTEAdvAssLineAcceleration_Mixin implements IAccelerationSt
     @Override
     public void setAccelerationState(boolean state) {
         isAccelerationState = state;
+    }
+
+    @Override
+    public int torcherino$getCurrentInputLength() {
+        return currentInputLength;
     }
 
     @Inject(

@@ -32,6 +32,19 @@ public enum Mixins {
             .setPhase(Phase.LATE)
             .addTargetMod(TargetMod.GregTech)
             .addTargetMod(TargetMod.GigaGramFab)
+            .addCondition(enableAccelerateGregTechMachine),
+        MixinClass.newMixinClass("Modify_EOH_WirelessEU")
+            .setClass("MTEEyeOfHarmony_WirelessEU_Mixin")
+            .setPackagePath(PackagePath.TecTech)
+            .setPhase(Phase.LATE)
+            .addTargetMod(TargetMod.TecTech)
+            .addTargetMod(TargetMod.GregTech)
+            .addCondition(enableAccelerateGregTechMachine),
+        MixinClass.newMixinClass("Modify_TPM_WirelessEU")
+            .setClass("MTETranscendentPlasmaMixer_WirelessEU_Mixin")
+            .setPackagePath(PackagePath.GregTech)
+            .setPhase(Phase.LATE)
+            .addTargetMod(TargetMod.GregTech)
             .addCondition(enableAccelerateGregTechMachine)),
 
     EnderIO_Accelerations(MixinClass.newMixinClass("To_Accelerate_EnderIO_Machine")
