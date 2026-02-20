@@ -103,7 +103,8 @@ public class ItemImperfectTimeTwister extends Item {
                         }
                     } else if (metaTileEntity instanceof MTEMultiBlockBase mb) {
                         int mbTier = (int) mb.getInputVoltageTier();
-                        if (mbTier >= 4) {
+                        // Block if tier >= 4 (EV+) or if actual EU/t consumption exceeds 2048 (EV voltage)
+                        if (mbTier >= 4 || Math.abs(mb.mEUt) > 2048) {
                             if (player != null) {
                                 player.addChatMessage(
                                     new ChatComponentText(
