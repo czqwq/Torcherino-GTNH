@@ -29,7 +29,6 @@ public class ItemImperfectTimeTwister extends Item {
 
     protected static final int MAX_DURABILITY = 20;
     protected static final String NBT_DURABILITY = "durability";
-    protected static final float ACCELERATION_RATE = 0.5F;
 
     public ItemImperfectTimeTwister() {
         this.setMaxStackSize(1);
@@ -82,13 +81,14 @@ public class ItemImperfectTimeTwister extends Item {
                 }
 
                 if (maxProgress >= 2) {
-                    // Compute bonus ticks from tier/recipe-length restrictions.
-                    // These are added directly to accelerationAmount (same mechanism as
-                    // PerfectTimeTwister: advance mProgresstime, not extend mMaxProgresstime).
-                    int bonusTicks = 0;
+                    // Compute the tick reduction based on machine type / tier / recipe duration.
+                    // Reduction is applied to remaining progress (maxProgress - currentProgress);
+                    // if remaining < reductionTicks, only the remaining amount is reduced.
+                    int remaining = maxProgress - currentProgress;
+                    int reductionTicks = 0;
                     if (metaTileEntity instanceof MTEBrickedBlastFurnace) {
-                        // Primitive blast furnace: fixed +100 ticks bonus
-                        bonusTicks = 100;
+                        // Primitive blast furnace: fixed reduction of 100 ticks
+                        reductionTicks = 100;
                     } else if (metaTileEntity instanceof MTEBasicMachine bm) {
                         if (bm.mTier >= 4) {
                             if (player != null) {
@@ -99,7 +99,7 @@ public class ItemImperfectTimeTwister extends Item {
                             return true;
                         }
                         if (bm.mEUt > 0) {
-                            bonusTicks = computeImperfectBonus(bm.mTier, maxProgress);
+                            reductionTicks = computeImperfectBonus(bm.mTier, maxProgress);
                         }
                     } else if (metaTileEntity instanceof MTEMultiBlockBase mb) {
                         int mbTier = (int) mb.getInputVoltageTier();
@@ -112,16 +112,15 @@ public class ItemImperfectTimeTwister extends Item {
                             return true;
                         }
                         if (mb.mEUt < 0) {
-                            bonusTicks = computeImperfectBonus(mbTier, maxProgress);
+                            reductionTicks = computeImperfectBonus(mbTier, maxProgress);
                         }
                     }
 
-                    // Calculate 50% acceleration of REMAINING time (rounded down) + bonus ticks
-                    // Formula: (total work time - current time) * 50% + bonusTicks
-                    int accelerationAmount = (int) ((maxProgress - currentProgress) * ACCELERATION_RATE) + bonusTicks;
+                    // Cap by remaining: if remaining < reductionTicks, reduce only by remaining
+                    int accelerationAmount = Math.min(reductionTicks, remaining);
 
                     if (accelerationAmount > 0) {
-                        int newProgress = Math.min(maxProgress, currentProgress + accelerationAmount);
+                        int newProgress = currentProgress + accelerationAmount;
 
                         // Apply acceleration based on machine type
                         boolean applied = false;
