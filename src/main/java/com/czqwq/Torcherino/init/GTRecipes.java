@@ -11,6 +11,7 @@ import gregtech.api.enums.Materials;
 import gregtech.api.enums.MaterialsUEVplus;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.util.GTModHandler;
+import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.recipe.Scanning;
 import gtPlusPlus.xmod.gregtech.api.enums.GregtechItemList;
 
@@ -21,9 +22,9 @@ public class GTRecipes {
             .metadata(RESEARCH_ITEM, GTModHandler.getModItem("Torcherino", "imperfectTimeTwister"))
             .metadata(SCANNING, new Scanning(HOURS / 2, RECIPE_UHV))
             .itemInputs(
-                new Object[] { OrePrefixes.circuit.get(Materials.UHV), 64 },
-                new Object[] { OrePrefixes.circuit.get(Materials.UEV), 64 },
-                new Object[] { OrePrefixes.circuit.get(Materials.UIV), 64 },
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UHV, 64),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UEV, 64),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UIV, 64),
                 GTModHandler.getModItem("kekztech", "kekztech_lapotronicenergyunit_block", 1, 9),
                 GTModHandler.getModItem("gregtech", "gt.blockmachines", 8, 11107),
                 GTModHandler.getModItem("minecraft", "clock", 64, 0),
