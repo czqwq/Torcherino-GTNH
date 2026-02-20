@@ -82,6 +82,46 @@ public class ItemImperfectTimeTwister extends Item {
                 }
 
                 if (maxProgress >= 2) {
+                    // Apply imperfect time twister restrictions (penalty ticks added to recipe duration)
+                    if (metaTileEntity instanceof MTEBrickedBlastFurnace bbf) {
+                        // Primitive blast furnace: fixed +100 ticks penalty
+                        bbf.mMaxProgresstime += 100;
+                        maxProgress = bbf.mMaxProgresstime;
+                    } else if (metaTileEntity instanceof MTEBasicMachine bm) {
+                        if (bm.mTier >= 4) {
+                            if (player != null) {
+                                player.addChatMessage(
+                                    new ChatComponentText(
+                                        StatCollector.translateToLocal("item.imperfectTimeTwister.tierTooHigh")));
+                            }
+                            return true;
+                        }
+                        if (bm.mEUt > 0) {
+                            int penalty = computeImperfectPenalty(bm.mTier, maxProgress);
+                            if (penalty > 0) {
+                                bm.mMaxProgresstime += penalty;
+                                maxProgress = bm.mMaxProgresstime;
+                            }
+                        }
+                    } else if (metaTileEntity instanceof MTEMultiBlockBase mb) {
+                        int mbTier = (int) mb.getInputVoltageTier();
+                        if (mbTier >= 4) {
+                            if (player != null) {
+                                player.addChatMessage(
+                                    new ChatComponentText(
+                                        StatCollector.translateToLocal("item.imperfectTimeTwister.tierTooHigh")));
+                            }
+                            return true;
+                        }
+                        if (mb.mEUt < 0) {
+                            int penalty = computeImperfectPenalty(mbTier, maxProgress);
+                            if (penalty > 0) {
+                                mb.mMaxProgresstime += penalty;
+                                maxProgress = mb.mMaxProgresstime;
+                            }
+                        }
+                    }
+
                     // Calculate 50% acceleration of REMAINING time (rounded down)
                     // Formula: (total work time - current time) * 50%
                     int accelerationAmount = (int) ((maxProgress - currentProgress) * ACCELERATION_RATE);
@@ -228,6 +268,21 @@ public class ItemImperfectTimeTwister extends Item {
     @Override
     public boolean isDamageable() {
         return false;
+    }
+
+    /**
+     * Computes the imperfect time twister penalty ticks for a machine based on its tier and current recipe duration.
+     * Lower-tier machines receive higher penalties.
+     *
+     * @param machineTier the voltage tier of the machine (0=ULV, 1=LV, 2=MV, 3=HV)
+     * @param maxProgress the current total recipe duration in ticks
+     * @return the number of penalty ticks to add to the recipe duration
+     */
+    private static int computeImperfectPenalty(int machineTier, int maxProgress) {
+        if (maxProgress > 400) return (4 - machineTier) * 40;
+        if (maxProgress > 200) return (4 - machineTier) * 20;
+        if (maxProgress > 40) return (4 - machineTier) * 10;
+        return 0;
     }
 
     /**

@@ -6,5 +6,6 @@ torcherino.change_mode_speed=Vitesse définie sur:
 torcherino.stopped=Torcherino arrêté
 
 item.imperfectTimeTwister.cannotAccelerateGenerator=§cImpossible d'accélérer le générateur GT actuel
+item.imperfectTimeTwister.tierTooHigh=§eL'agitateur temporel laisse échapper un grognement, rien ne s'est passé
 item.perfectTimeTwister.cannotAccelerateGenerator=§cImpossible d'accélérer le générateur GT actuel
 item.perfectTimeTwister.accelerationFailed=§cÉchec de l'accélération, voir les journaux pour plus de détails

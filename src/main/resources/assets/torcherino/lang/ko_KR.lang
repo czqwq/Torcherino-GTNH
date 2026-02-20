@@ -6,5 +6,6 @@ torcherino.change_mode_speed=속도 설정:
 torcherino.stopped=토쳐리노 정지됨
 
 item.imperfectTimeTwister.cannotAccelerateGenerator=§c현재 GT 발전기를 가속할 수 없습니다
+item.imperfectTimeTwister.tierTooHigh=§e시간 비틀개가 투덜거리는 소리를 내지만, 아무 일도 일어나지 않았습니다
 item.perfectTimeTwister.cannotAccelerateGenerator=§c현재 GT 발전기를 가속할 수 없습니다
 item.perfectTimeTwister.accelerationFailed=§c가속 실패, 자세한 내용은 로그를 확인하세요
