@@ -82,11 +82,13 @@ public class ItemImperfectTimeTwister extends Item {
                 }
 
                 if (maxProgress >= 2) {
-                    // Apply imperfect time twister restrictions (penalty ticks added to recipe duration)
-                    if (metaTileEntity instanceof MTEBrickedBlastFurnace bbf) {
-                        // Primitive blast furnace: fixed +100 ticks penalty
-                        bbf.mMaxProgresstime += 100;
-                        maxProgress = bbf.mMaxProgresstime;
+                    // Compute bonus ticks from tier/recipe-length restrictions.
+                    // These are added directly to accelerationAmount (same mechanism as
+                    // PerfectTimeTwister: advance mProgresstime, not extend mMaxProgresstime).
+                    int bonusTicks = 0;
+                    if (metaTileEntity instanceof MTEBrickedBlastFurnace) {
+                        // Primitive blast furnace: fixed +100 ticks bonus
+                        bonusTicks = 100;
                     } else if (metaTileEntity instanceof MTEBasicMachine bm) {
                         if (bm.mTier >= 4) {
                             if (player != null) {
@@ -97,11 +99,7 @@ public class ItemImperfectTimeTwister extends Item {
                             return true;
                         }
                         if (bm.mEUt > 0) {
-                            int penalty = computeImperfectPenalty(bm.mTier, maxProgress);
-                            if (penalty > 0) {
-                                bm.mMaxProgresstime += penalty;
-                                maxProgress = bm.mMaxProgresstime;
-                            }
+                            bonusTicks = computeImperfectBonus(bm.mTier, maxProgress);
                         }
                     } else if (metaTileEntity instanceof MTEMultiBlockBase mb) {
                         int mbTier = (int) mb.getInputVoltageTier();
@@ -114,17 +112,13 @@ public class ItemImperfectTimeTwister extends Item {
                             return true;
                         }
                         if (mb.mEUt < 0) {
-                            int penalty = computeImperfectPenalty(mbTier, maxProgress);
-                            if (penalty > 0) {
-                                mb.mMaxProgresstime += penalty;
-                                maxProgress = mb.mMaxProgresstime;
-                            }
+                            bonusTicks = computeImperfectBonus(mbTier, maxProgress);
                         }
                     }
 
-                    // Calculate 50% acceleration of REMAINING time (rounded down)
-                    // Formula: (total work time - current time) * 50%
-                    int accelerationAmount = (int) ((maxProgress - currentProgress) * ACCELERATION_RATE);
+                    // Calculate 50% acceleration of REMAINING time (rounded down) + bonus ticks
+                    // Formula: (total work time - current time) * 50% + bonusTicks
+                    int accelerationAmount = (int) ((maxProgress - currentProgress) * ACCELERATION_RATE) + bonusTicks;
 
                     if (accelerationAmount > 0) {
                         int newProgress = Math.min(maxProgress, currentProgress + accelerationAmount);
@@ -271,14 +265,15 @@ public class ItemImperfectTimeTwister extends Item {
     }
 
     /**
-     * Computes the imperfect time twister penalty ticks for a machine based on its tier and current recipe duration.
-     * Lower-tier machines receive higher penalties.
+     * Computes the imperfect time twister bonus ticks for a machine based on its tier and current recipe duration.
+     * Lower-tier machines receive a larger bonus (more acceleration). The bonus is added directly to the
+     * accelerationAmount so that mProgresstime is advanced further (same mechanism as PerfectTimeTwister).
      *
      * @param machineTier the voltage tier of the machine (0=ULV, 1=LV, 2=MV, 3=HV)
      * @param maxProgress the current total recipe duration in ticks
-     * @return the number of penalty ticks to add to the recipe duration
+     * @return the number of bonus ticks to add to the acceleration amount
      */
-    private static int computeImperfectPenalty(int machineTier, int maxProgress) {
+    private static int computeImperfectBonus(int machineTier, int maxProgress) {
         if (maxProgress > 400) return (4 - machineTier) * 40;
         if (maxProgress > 200) return (4 - machineTier) * 20;
         if (maxProgress > 40) return (4 - machineTier) * 10;
