@@ -18,7 +18,9 @@ import cpw.mods.fml.relauncher.SideOnly;
 import ggfab.mte.MTEAdvAssLine;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.metatileentity.BaseMetaTileEntity;
+import gregtech.api.metatileentity.implementations.MTEBasicGenerator;
 import gregtech.api.metatileentity.implementations.MTEBasicMachine;
+import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.common.tileentities.machines.multi.MTEBrickedBlastFurnace;
 import tectech.thing.metaTileEntity.multi.MTEResearchStation;
@@ -65,6 +67,16 @@ public class ItemImperfectTimeTwister extends Item {
                         player.addChatMessage(
                             new ChatComponentText(
                                 StatCollector.translateToLocal("item.imperfectTimeTwister.cannotAccelerate")));
+                    }
+                    return true;
+                }
+
+                // Block GT generators (single-block and multi-block)
+                if (isGTGenerator(metaTileEntity)) {
+                    if (player != null) {
+                        player.addChatMessage(
+                            new ChatComponentText(
+                                StatCollector.translateToLocal("item.imperfectTimeTwister.cannotAccelerateGenerator")));
                     }
                     return true;
                 }
@@ -215,6 +227,18 @@ public class ItemImperfectTimeTwister extends Item {
      */
     @Override
     public boolean isDamageable() {
+        return false;
+    }
+
+    /**
+     * Returns true if the given IMetaTileEntity is a GT generator (single-block or multi-block).
+     * Single-block generators extend {@link MTEBasicGenerator}.
+     * Multi-block generators set mEUt > 0 (or lEUt > 0 for extended-power machines) while running.
+     */
+    private static boolean isGTGenerator(IMetaTileEntity metaTileEntity) {
+        if (metaTileEntity instanceof MTEBasicGenerator) return true;
+        if (metaTileEntity instanceof MTEExtendedPowerMultiBlockBase<?>extMulti) return extMulti.lEUt > 0;
+        if (metaTileEntity instanceof MTEMultiBlockBase multiBlock) return multiBlock.mEUt > 0;
         return false;
     }
 }
