@@ -36,9 +36,9 @@ public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<
     private int timeRate = 0; // 0表示0%，1表示100%，2表示200%，以此类推
 
     // 独立的X、Y、Z范围（半径）
-    private int xRadius = 1; // 默认3格范围 (半径1)
-    private int yRadius = 1; // 默认3格范围 (半径1)
-    private int zRadius = 1; // 默认3格范围 (半径1)
+    private int xRadius = 0; // 默认1格范围 (半径0)
+    private int yRadius = 0; // 默认1格范围 (半径0)
+    private int zRadius = 0; // 默认1格范围 (半径0)
 
     private byte cachedXRadius = -1;
     private byte cachedYRadius = -1;

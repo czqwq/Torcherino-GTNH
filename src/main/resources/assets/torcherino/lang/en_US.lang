@@ -16,6 +16,7 @@ item.imperfectTimeTwister.notWorking=§cMachine is not running or has no progres
 item.imperfectTimeTwister.notGTMachine=§cThis is not a GregTech machine!
 item.imperfectTimeTwister.cannotAccelerate=§cCannot accelerate this GT machine
 item.imperfectTimeTwister.cannotAccelerateGenerator=§cCannot accelerate current GT generator
+item.imperfectTimeTwister.tierTooHigh=§eThe time twister lets out a grumble, nothing happened
 
 item.perfectTimeTwister.name=Perfect Time Twister
 item.perfectTimeTwister.description=§bConsumes wireless EU to instantly complete GT machine recipes

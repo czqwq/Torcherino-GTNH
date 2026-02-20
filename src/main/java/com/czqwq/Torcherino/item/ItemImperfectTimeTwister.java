@@ -29,7 +29,6 @@ public class ItemImperfectTimeTwister extends Item {
 
     protected static final int MAX_DURABILITY = 20;
     protected static final String NBT_DURABILITY = "durability";
-    protected static final float ACCELERATION_RATE = 0.5F;
 
     public ItemImperfectTimeTwister() {
         this.setMaxStackSize(1);
@@ -82,12 +81,47 @@ public class ItemImperfectTimeTwister extends Item {
                 }
 
                 if (maxProgress >= 2) {
-                    // Calculate 50% acceleration of REMAINING time (rounded down)
-                    // Formula: (total work time - current time) * 50%
-                    int accelerationAmount = (int) ((maxProgress - currentProgress) * ACCELERATION_RATE);
+                    // Compute the tick reduction based on machine type / tier / recipe duration.
+                    // Reduction is applied to remaining progress (maxProgress - currentProgress);
+                    // if remaining < reductionTicks, only the remaining amount is reduced.
+                    int remaining = maxProgress - currentProgress;
+                    int reductionTicks = 0;
+                    if (metaTileEntity instanceof MTEBrickedBlastFurnace) {
+                        // Primitive blast furnace: fixed reduction of 100 ticks
+                        reductionTicks = 100;
+                    } else if (metaTileEntity instanceof MTEBasicMachine bm) {
+                        if (bm.mTier >= 4) {
+                            if (player != null) {
+                                player.addChatMessage(
+                                    new ChatComponentText(
+                                        StatCollector.translateToLocal("item.imperfectTimeTwister.tierTooHigh")));
+                            }
+                            return true;
+                        }
+                        if (bm.mEUt > 0) {
+                            reductionTicks = computeImperfectBonus(bm.mTier, maxProgress);
+                        }
+                    } else if (metaTileEntity instanceof MTEMultiBlockBase mb) {
+                        int mbTier = (int) mb.getInputVoltageTier();
+                        // Block if tier >= 4 (EV+) or if actual EU/t consumption exceeds 2048 (EV voltage)
+                        if (mbTier >= 4 || Math.abs(mb.mEUt) > 2048) {
+                            if (player != null) {
+                                player.addChatMessage(
+                                    new ChatComponentText(
+                                        StatCollector.translateToLocal("item.imperfectTimeTwister.tierTooHigh")));
+                            }
+                            return true;
+                        }
+                        if (mb.mEUt < 0) {
+                            reductionTicks = computeImperfectBonus(mbTier, maxProgress);
+                        }
+                    }
+
+                    // Cap by remaining: if remaining < reductionTicks, reduce only by remaining
+                    int accelerationAmount = Math.min(reductionTicks, remaining);
 
                     if (accelerationAmount > 0) {
-                        int newProgress = Math.min(maxProgress, currentProgress + accelerationAmount);
+                        int newProgress = currentProgress + accelerationAmount;
 
                         // Apply acceleration based on machine type
                         boolean applied = false;
@@ -228,6 +262,22 @@ public class ItemImperfectTimeTwister extends Item {
     @Override
     public boolean isDamageable() {
         return false;
+    }
+
+    /**
+     * Computes the imperfect time twister bonus ticks for a machine based on its tier and current recipe duration.
+     * Lower-tier machines receive a larger bonus (more acceleration). The bonus is added directly to the
+     * accelerationAmount so that mProgresstime is advanced further (same mechanism as PerfectTimeTwister).
+     *
+     * @param machineTier the voltage tier of the machine (0=ULV, 1=LV, 2=MV, 3=HV)
+     * @param maxProgress the current total recipe duration in ticks
+     * @return the number of bonus ticks to add to the acceleration amount
+     */
+    private static int computeImperfectBonus(int machineTier, int maxProgress) {
+        if (maxProgress > 400) return (4 - machineTier) * 40;
+        if (maxProgress > 200) return (4 - machineTier) * 20;
+        if (maxProgress > 40) return (4 - machineTier) * 10;
+        return 0;
     }
 
     /**

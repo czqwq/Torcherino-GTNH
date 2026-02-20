@@ -16,6 +16,7 @@ item.imperfectTimeTwister.notWorking=§c机器未运行或无进度可加速!
 item.imperfectTimeTwister.notGTMachine=§c这不是格雷科技机器!
 item.imperfectTimeTwister.cannotAccelerate=§c无法加速该GT机器
 item.imperfectTimeTwister.cannotAccelerateGenerator=§c无法加速当前GT发电机
+item.imperfectTimeTwister.tierTooHigh=§e时间扭曲者发出来一声咕哝,什么都没有发生
 
 item.perfectTimeTwister.name=完美时间扭曲者
 item.perfectTimeTwister.description=§b消耗无线电网EU以立即完成GT机器配方
