@@ -11,7 +11,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 
+import com.czqwq.Torcherino.Torcherino;
 import com.google.common.collect.ImmutableSet;
+
+import gregtech.api.metatileentity.BaseMetaTileEntity;
+import gregtech.common.tileentities.machines.basic.MTEWorldAccelerator;
 
 /**
  * Classic Torcherino implementation based on MockTurtle7's original logic
@@ -115,7 +119,8 @@ public class TileTorcherinoClassic extends TileEntity {
                         if (tile != null && !(tile instanceof TileTorcherinoClassic)
                             && !(tile instanceof TileCompressedTorcherinoClassic)
                             && !(tile instanceof TileDoubleCompressedTorcherinoClassic)
-                            && !tile.isInvalid()) {
+                            && !tile.isInvalid()
+                            && !isGTWorldAccelerator(tile)) {
                             for (int i = 0; i < effectiveSpeed; i++) {
                                 try {
                                     tile.updateEntity();
@@ -132,6 +137,14 @@ public class TileTorcherinoClassic extends TileEntity {
 
     public void setActive(boolean active) {
         this.isActive = active;
+    }
+
+    private static boolean isGTWorldAccelerator(TileEntity te) {
+        if (!Torcherino.hasGregTech) return false;
+        if (te instanceof BaseMetaTileEntity baseMTE) {
+            return baseMTE.getMetaTileEntity() instanceof MTEWorldAccelerator;
+        }
+        return false;
     }
 
     public void changeMode(boolean sneaking, EntityPlayer player) {
