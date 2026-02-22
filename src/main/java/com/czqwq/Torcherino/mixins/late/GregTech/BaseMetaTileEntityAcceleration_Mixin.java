@@ -16,6 +16,7 @@ import gregtech.api.metatileentity.BaseMetaTileEntity;
 import gregtech.api.metatileentity.CommonBaseMetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEBasicMachine;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
+import gregtech.common.tileentities.machines.basic.MTEWorldAccelerator;
 import gregtech.common.tileentities.machines.multi.MTEBrickedBlastFurnace;
 import tectech.thing.metaTileEntity.multi.MTEResearchStation;
 
@@ -46,6 +47,11 @@ public abstract class BaseMetaTileEntityAcceleration_Mixin extends CommonBaseMet
             int currentProgress = this.getProgress();
             int maxProgress = this.getMaxProgress();
             IMetaTileEntity metaTileEntity = this.getMetaTileEntity();
+
+            // Blacklist GT World Accelerator - it must not be accelerated by torches
+            if (metaTileEntity instanceof MTEWorldAccelerator) {
+                return true;
+            }
 
             // for accelerating Research Station
             if (metaTileEntity instanceof MTEResearchStation researchStation) {
