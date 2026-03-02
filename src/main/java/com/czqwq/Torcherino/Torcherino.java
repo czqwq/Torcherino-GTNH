@@ -26,7 +26,6 @@ public class Torcherino {
     public static final String VERSION = "1.0";
 
     public static boolean hasGregTech = false;
-    public static boolean hasNHUtilities = false;
 
     @Mod.Instance(MODID)
     public static Torcherino instance;
@@ -40,9 +39,6 @@ public class Torcherino {
     public void preInit(FMLPreInitializationEvent event) {
         // 检测GregTech是否加载
         hasGregTech = Loader.isModLoaded("gregtech");
-        // 检测NH-Utilities是否加载
-        hasNHUtilities = Loader.isModLoaded("NHUtilities");
-
         proxy.preInit(event);
     }
 
