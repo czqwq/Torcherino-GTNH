@@ -6,7 +6,8 @@ public enum TargetMod {
     GregTech("GregTech", "gregtech"),
     TecTech("TecTech - Tec Technology!", "tectech"),
     GigaGramFab("GigaGramFab", "ggfab"),
-    EnderIO("Ender IO", "EnderIO");
+    EnderIO("Ender IO", "EnderIO"),
+    NHUtilities("NH Utilities", "NHUtilities");
 
     private final String modId;
     public final String modName;

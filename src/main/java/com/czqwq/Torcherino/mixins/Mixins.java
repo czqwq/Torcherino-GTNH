@@ -18,6 +18,7 @@ public enum Mixins {
         .setPackagePath(PackagePath.GregTech)
         .setPhase(Phase.LATE)
         .addTargetMod(TargetMod.GregTech)
+        .addExcludedMod(TargetMod.NHUtilities)
         .addCondition(enableAccelerateGregTechMachine),
         MixinClass.newMixinClass("Modify_ResearchStation_Acceleration")
             .setClass("ResearchStationAcceleration_Mixin")
@@ -52,12 +53,14 @@ public enum Mixins {
         .setPackagePath(PackagePath.EnderIO)
         .setPhase(Phase.LATE)
         .addTargetMod(TargetMod.EnderIO)
+        .addExcludedMod(TargetMod.NHUtilities)
         .addCondition(true),
         MixinClass.newMixinClass("Modify_Acceleration_Energy_Receive")
             .setClass("AccelerateEnergyReceive_Mixin")
             .setPackagePath(PackagePath.EnderIO)
             .setPhase(Phase.LATE)
             .addTargetMod(TargetMod.EnderIO)
+            .addExcludedMod(TargetMod.NHUtilities)
             .addCondition(true)),
 
     ;
@@ -87,6 +90,9 @@ public enum Mixins {
                         .map(TargetMod::getModId)
                         .collect(Collectors.toSet())))
                     continue;
+                if (mixinClass.excludedMods.stream()
+                    .map(TargetMod::getModId)
+                    .anyMatch(loadedMods::contains)) continue;
                 mixins.add(mixinClass.getMixinClassPath());
             }
         }
@@ -115,6 +121,7 @@ public enum Mixins {
         String packagePath;
         Phase phase = Phase.ERROR_PHASE;
         List<TargetMod> targetMods = new ArrayList<>();
+        List<TargetMod> excludedMods = new ArrayList<>();
         Predicate<MixinClass> classPredicate = mixinClass -> true;
 
         public MixinClass(String id) {
@@ -150,6 +157,11 @@ public enum Mixins {
 
         MixinClass addTargetMod(TargetMod... targetMod) {
             targetMods.addAll(Arrays.asList(targetMod));
+            return this;
+        }
+
+        MixinClass addExcludedMod(TargetMod... excludedMod) {
+            excludedMods.addAll(Arrays.asList(excludedMod));
             return this;
         }
 

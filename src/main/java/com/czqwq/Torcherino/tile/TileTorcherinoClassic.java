@@ -119,6 +119,9 @@ public class TileTorcherinoClassic extends TileEntity {
                         if (tile != null && !(tile instanceof TileTorcherinoClassic)
                             && !(tile instanceof TileCompressedTorcherinoClassic)
                             && !(tile instanceof TileDoubleCompressedTorcherinoClassic)
+                            && !(tile instanceof TileTorcherinoAccelerated)
+                            && !(tile instanceof TileCompressedTorcherino)
+                            && !(tile instanceof TileDoubleCompressedTorcherino)
                             && !tile.isInvalid()
                             && !isGTWorldAccelerator(tile)) {
                             for (int i = 0; i < effectiveSpeed; i++) {

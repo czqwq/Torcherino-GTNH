@@ -337,6 +337,9 @@ public class TileDoubleCompressedTorcherino extends TileEntity implements IGuiHo
         if (tileEntity != null && !(tileEntity instanceof TileTorcherinoAccelerated)
             && !(tileEntity instanceof TileCompressedTorcherino)
             && !(tileEntity instanceof TileDoubleCompressedTorcherino)
+            && !(tileEntity instanceof TileTorcherinoClassic)
+            && !(tileEntity instanceof TileCompressedTorcherinoClassic)
+            && !(tileEntity instanceof TileDoubleCompressedTorcherinoClassic)
             && !tileEntity.isInvalid()
             && tileEntity.canUpdate()) {
 
