@@ -474,6 +474,10 @@ public class TileTorcherinoAccelerated extends TileEntity implements IGuiHolder<
         TileEntity tileEntity = world.getTileEntity(x, y, z);
         if (tileEntity != null && !(tileEntity instanceof TileTorcherinoAccelerated)
             && !(tileEntity instanceof TileCompressedTorcherino)
+            && !(tileEntity instanceof TileDoubleCompressedTorcherino)
+            && !(tileEntity instanceof TileTorcherinoClassic)
+            && !(tileEntity instanceof TileCompressedTorcherinoClassic)
+            && !(tileEntity instanceof TileDoubleCompressedTorcherinoClassic)
             && !tileEntity.isInvalid()
             && tileEntity.canUpdate()) {
 
