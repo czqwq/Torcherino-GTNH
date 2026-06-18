@@ -10,6 +10,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import com.cleanroommc.modularui.api.IGuiHolder;
+import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.drawable.Rectangle;
 import com.cleanroommc.modularui.drawable.text.DynamicKey;
 import com.cleanroommc.modularui.factory.PosGuiData;
@@ -110,34 +111,34 @@ public class TileCompressedTorcherino extends TileEntity implements IGuiHolder<P
         DoubleSyncValue speedValue = new DoubleSyncValue(() -> (double) (timeRate / 9), val -> {
             timeRate = (int) Math.round(val) * 9;
             markDirty();
-        });
+        }).allowC2S();
 
         // Sync X radius value
         DoubleSyncValue xRadiusValue = new DoubleSyncValue(
             () -> (double) xRadius,
-            val -> { setXRadius((int) Math.round(val)); });
+            val -> { setXRadius((int) Math.round(val)); }).allowC2S();
 
         // Sync Y radius value
         DoubleSyncValue yRadiusValue = new DoubleSyncValue(
             () -> (double) yRadius,
-            val -> { setYRadius((int) Math.round(val)); });
+            val -> { setYRadius((int) Math.round(val)); }).allowC2S();
 
         // Sync Z radius value
         DoubleSyncValue zRadiusValue = new DoubleSyncValue(
             () -> (double) zRadius,
-            val -> { setZRadius((int) Math.round(val)); });
+            val -> { setZRadius((int) Math.round(val)); }).allowC2S();
 
         // Gray background for sliders
         Rectangle sliderBg = new Rectangle().setColor(0xFF3A3A3A);
 
         // Title
         panel.child(
-            new TextWidget(translateToLocal("torcherino.gui.title")).left(8)
+            new TextWidget<>(translateToLocal("torcherino.gui.title")).left(8)
                 .top(6));
 
         // Speed slider label
         panel.child(
-            new TextWidget(translateToLocal("torcherino.gui.speed")).left(8)
+            new TextWidget<>(translateToLocal("torcherino.gui.speed")).left(8)
                 .top(22));
 
         // Speed slider (0-4: 0%, 900%, 1800%, 2700%, 3600%)
@@ -152,15 +153,16 @@ public class TileCompressedTorcherino extends TileEntity implements IGuiHolder<P
 
         // Speed display
         panel.child(
-            new TextWidget(
+            new TextWidget<>(
                 new DynamicKey(
-                    () -> speedValue.getDoubleValue() == 0.0 ? "0%" : ((int) speedValue.getDoubleValue() * 900) + "%"))
-                        .left(78)
-                        .top(44));
+                    () -> IKey.str(
+                        speedValue.getDoubleValue() == 0.0 ? "0%" : ((int) speedValue.getDoubleValue() * 900) + "%")))
+                            .left(78)
+                            .top(44));
 
         // X Range slider label
         panel.child(
-            new TextWidget(translateToLocal("torcherino.gui.x_range")).left(8)
+            new TextWidget<>(translateToLocal("torcherino.gui.x_range")).left(8)
                 .top(58));
 
         // X Range slider (0-4: 1-9 blocks)
@@ -175,12 +177,12 @@ public class TileCompressedTorcherino extends TileEntity implements IGuiHolder<P
 
         // X Range display
         panel.child(
-            new TextWidget(new DynamicKey(() -> (int) xRadiusValue.getDoubleValue() * 2 + 1 + "")).left(78)
+            new TextWidget<>(new DynamicKey(() -> IKey.str((int) xRadiusValue.getDoubleValue() * 2 + 1 + ""))).left(78)
                 .top(80));
 
         // Y Range slider label
         panel.child(
-            new TextWidget(translateToLocal("torcherino.gui.y_range")).left(8)
+            new TextWidget<>(translateToLocal("torcherino.gui.y_range")).left(8)
                 .top(94));
 
         // Y Range slider (0-1: 1-3 blocks)
@@ -195,12 +197,12 @@ public class TileCompressedTorcherino extends TileEntity implements IGuiHolder<P
 
         // Y Range display
         panel.child(
-            new TextWidget(new DynamicKey(() -> (int) yRadiusValue.getDoubleValue() * 2 + 1 + "")).left(78)
+            new TextWidget<>(new DynamicKey(() -> IKey.str((int) yRadiusValue.getDoubleValue() * 2 + 1 + ""))).left(78)
                 .top(116));
 
         // Z Range slider label
         panel.child(
-            new TextWidget(translateToLocal("torcherino.gui.z_range")).left(8)
+            new TextWidget<>(translateToLocal("torcherino.gui.z_range")).left(8)
                 .top(130));
 
         // Z Range slider (0-4: 1-9 blocks)
@@ -215,15 +217,15 @@ public class TileCompressedTorcherino extends TileEntity implements IGuiHolder<P
 
         // Z Range display
         panel.child(
-            new TextWidget(new DynamicKey(() -> (int) zRadiusValue.getDoubleValue() * 2 + 1 + "")).left(78)
+            new TextWidget<>(new DynamicKey(() -> IKey.str((int) zRadiusValue.getDoubleValue() * 2 + 1 + ""))).left(78)
                 .top(152));
 
         // Overall range display
-        panel.child(new TextWidget(new DynamicKey(() -> {
+        panel.child(new TextWidget<>(new DynamicKey(() -> {
             int x = (int) xRadiusValue.getDoubleValue() * 2 + 1;
             int y = (int) yRadiusValue.getDoubleValue() * 2 + 1;
             int z = (int) zRadiusValue.getDoubleValue() * 2 + 1;
-            return x + "x" + y + "x" + z;
+            return IKey.str(x + "x" + y + "x" + z);
         })).left(8)
             .top(166));
 

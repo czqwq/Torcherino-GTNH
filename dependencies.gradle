@@ -1,23 +1,18 @@
 
 elytraModpackVersion {
     // 在这配置的gtnh版本 用于自动拉取依赖版本
-    gtnhVersion = "2.8.0"
+    gtnhVersion = "2.9.0-beta-1"
     // 是否不缓存拉取的依赖清单文件
     manifestNoCache = false
     // 是否自动为输出的jar添加 `gtnhVersion` 后缀
-    attachManifestVersionToJar = true
+    attachManifestVersionToJar = false
 }
 
 dependencies {
     implementation(gtnhDev("GT5-Unofficial"))
-    implementation(gtnhDev("NewHorizonsCoreMod"))
     implementation(gtnhDev("ModularUI2"))
     implementation(gtnhDev("Avaritia"))
-    implementation(gtnhDev("Mobs-Info"))
-    implementation(gtnhDev("Infernal-Mobs"))
     implementation(gtnhDev("Avaritiaddons"))
-    implementation(gtnhDev("Galaxy-Space-GTNH"))
-    implementation(gtnhDev("SGCraft"))
     implementation(gtnhDev("neiaddons"))
     implementation('com.github.GTNewHorizons:Binnie:2.5.16:dev')
 //    implementation(gtnhDev("Binnie"))
@@ -27,7 +22,6 @@ dependencies {
     implementation('com.github.GTNewHorizons:worldedit-gtnh:v0.0.8:dev')
 
     // runtime
-    runtimeOnlyNonPublishable(gtnhDev("Chisel"))
     runtimeOnlyNonPublishable(gtnhDev("StructureLib"))
     runtimeOnlyNonPublishable(gtnhDev("BlockRenderer6343")) { transitive = false }
     runtimeOnlyNonPublishable rfg.deobf(files("libs/OmniOcularUnofficial.jar"))
