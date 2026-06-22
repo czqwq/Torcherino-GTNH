@@ -1,15 +1,16 @@
 package com.czqwq.Torcherino.mixins.late.TecTech;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Shadow;
 
 import com.czqwq.Torcherino.api.interfaces.ITileEntityTickAcceleration;
 
-import tectech.thing.metaTileEntity.multi.MTEResearchStation;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
 
+@Pseudo
 @SuppressWarnings("UnusedMixin")
-@Mixin(value = MTEResearchStation.class, remap = false)
+@Mixin(targets = "tectech.thing.metaTileEntity.multi.MTEResearchStation", remap = false)
 public abstract class ResearchStationAcceleration_Mixin extends TTMultiblockBase
     implements ITileEntityTickAcceleration {
 

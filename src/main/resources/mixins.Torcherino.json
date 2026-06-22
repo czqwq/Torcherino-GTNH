@@ -3,5 +3,9 @@
   "minVersion": "0.8.5-GTNH",
   "refmap": "mixins.Torcherino.refmap.json",
   "target": "@env(DEFAULT)",
-  "compatibilityLevel": "JAVA_8"
+  "compatibilityLevel": "JAVA_8",
+  "package": "com.czqwq.Torcherino.mixins.early",
+  "mixins": [
+    "GregTech.BaseMetaTileEntityAcceleration_Mixin"
+  ]
 }

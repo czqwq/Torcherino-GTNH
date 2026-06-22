@@ -13,19 +13,13 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 public enum Mixins {
 
-    GregTech_Accelerations(MixinClass.newMixinClass("Modify_BaseMTE_With_Acceleration")
-        .setClass("BaseMetaTileEntityAcceleration_Mixin")
-        .setPackagePath(PackagePath.GregTech)
+    GregTech_Accelerations(MixinClass.newMixinClass("Modify_ResearchStation_Acceleration")
+        .setClass("ResearchStationAcceleration_Mixin")
+        .setPackagePath(PackagePath.TecTech)
         .setPhase(Phase.LATE)
+        .addTargetMod(TargetMod.TecTech)
         .addTargetMod(TargetMod.GregTech)
         .addCondition(enableAccelerateGregTechMachine),
-        MixinClass.newMixinClass("Modify_ResearchStation_Acceleration")
-            .setClass("ResearchStationAcceleration_Mixin")
-            .setPackagePath(PackagePath.TecTech)
-            .setPhase(Phase.LATE)
-            .addTargetMod(TargetMod.TecTech)
-            .addTargetMod(TargetMod.GregTech)
-            .addCondition(enableAccelerateGregTechMachine),
         MixinClass.newMixinClass("Modify_AdvAssLine_Acceleration")
             .setClass("MTEAdvAssLineAcceleration_Mixin")
             .setPackagePath(PackagePath.GregTech)

@@ -8,14 +8,12 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import com.czqwq.Torcherino.api.interfaces.mixinHelper.IWirelessEUMachineInfo;
 
-import gregtech.common.tileentities.machines.multi.MTETranscendentPlasmaMixer;
-
 @Pseudo
-@Mixin(value = MTETranscendentPlasmaMixer.class, remap = false)
+@Mixin(targets = "gregtech.common.tileentities.machines.multi.MTETranscendentPlasmaMixer", remap = false)
 @SuppressWarnings({ "UnusedMixin", "AddedMixinMembersNamePattern" })
 public abstract class MTETranscendentPlasmaMixer_WirelessEU_Mixin implements IWirelessEUMachineInfo {
 
-    @Shadow
+    @Shadow(remap = false)
     BigInteger finalConsumption;
 
     @Override

@@ -13,17 +13,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.czqwq.Torcherino.api.interfaces.mixinHelper.IAccelerationState;
 import com.czqwq.Torcherino.api.interfaces.mixinHelper.IAdvAssLineInfo;
 
-import ggfab.mte.MTEAdvAssLine;
-
 @Pseudo
-@Mixin(value = MTEAdvAssLine.class, remap = false)
+@Mixin(targets = "ggfab.mte.MTEAdvAssLine", remap = false)
 @SuppressWarnings({ "UnusedMixin", "AddedMixinMembersNamePattern" })
 public abstract class MTEAdvAssLineAcceleration_Mixin implements IAccelerationState, IAdvAssLineInfo {
 
-    @Shadow
+    @Shadow(remap = false)
     private boolean stuck;
 
-    @Shadow
+    @Shadow(remap = false)
     private int currentInputLength;
 
     @Unique

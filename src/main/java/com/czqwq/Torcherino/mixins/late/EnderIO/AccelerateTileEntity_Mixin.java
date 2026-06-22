@@ -11,7 +11,7 @@ import com.enderio.core.common.TileEntityEnder;
 @Mixin(value = TileEntityEnder.class, remap = false)
 public abstract class AccelerateTileEntity_Mixin implements ITileEntityTickAcceleration {
 
-    @Shadow
+    @Shadow(remap = false)
     private long lastUpdate;
 
     @Shadow(remap = true)

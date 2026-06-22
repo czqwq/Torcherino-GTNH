@@ -1,12 +1,14 @@
 package com.czqwq.Torcherino.mixins;
 
+import gregtech.api.enums.Mods;
+
 @SuppressWarnings({ "unused", "SpellCheckingInspection" })
 public enum TargetMod {
 
-    GregTech("GregTech", "gregtech"),
-    TecTech("TecTech - Tec Technology!", "tectech"),
-    GigaGramFab("GigaGramFab", "ggfab"),
-    EnderIO("Ender IO", "EnderIO");
+    GregTech("GregTech", Mods.GregTech.ID),
+    TecTech("TecTech", Mods.TecTech.ID),
+    GigaGramFab("GGFab", Mods.GGFab.ID),
+    EnderIO("EnderIO", Mods.EnderIO.ID);
 
     private final String modId;
     public final String modName;

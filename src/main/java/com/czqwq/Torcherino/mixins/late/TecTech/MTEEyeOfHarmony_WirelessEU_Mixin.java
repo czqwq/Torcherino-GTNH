@@ -8,14 +8,12 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import com.czqwq.Torcherino.api.interfaces.mixinHelper.IWirelessEUMachineInfo;
 
-import tectech.thing.metaTileEntity.multi.MTEEyeOfHarmony;
-
 @Pseudo
-@Mixin(value = MTEEyeOfHarmony.class, remap = false)
+@Mixin(targets = "tectech.thing.metaTileEntity.multi.MTEEyeOfHarmony", remap = false)
 @SuppressWarnings({ "UnusedMixin", "AddedMixinMembersNamePattern" })
 public abstract class MTEEyeOfHarmony_WirelessEU_Mixin implements IWirelessEUMachineInfo {
 
-    @Shadow
+    @Shadow(remap = false)
     private BigInteger usedEU;
 
     @Override
