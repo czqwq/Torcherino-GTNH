@@ -6,17 +6,53 @@ import net.minecraftforge.common.config.Configuration;
 
 public class Config {
 
-    public static String greeting = "Hello World";
-
-    // Acceleration settings
+    // ========== Acceleration settings ==========
     public static boolean enableAccelerateGregTechMachine = true;
     public static float accelerateGregTechMachineDiscount = 0.8F;
+
+    // ========== Radius limits ==========
+    public static int maxXRadius = 4;
+    public static int maxYRadius = 1;
+    public static int maxZRadius = 4;
+
+    // ========== Speed limits ==========
+    /**
+     * Maximum speed slider level (0-based, so 4 means 5 levels: 0-4).
+     * Each level applies the multiplier (1x for normal, 9x for compressed, 81x for double).
+     */
+    public static int maxSpeedLevel = 4;
+
+    // ========== Performance controls ==========
+    /**
+     * Enable per-tick time budget to prevent server lag from excessive acceleration.
+     * When enabled, acceleration stops if the tick budget (in nanoseconds) is exceeded.
+     */
+    public static boolean enableTickBudget = true;
+
+    /**
+     * Per-tick time budget in nanoseconds. Default: 1_000_000 (1 ms).
+     * When enableTickBudget is true, each torch will stop accelerating
+     * if it spends more than this amount of time in a single tick.
+     */
+    public static long tickBudgetNanos = 1_000_000L;
+
+    /**
+     * Enable overlap detection to prevent multiple torches from double-accelerating
+     * the same tile entities. When enabled, each position is only accelerated once
+     * per world tick, by the fastest torch that covers it.
+     */
+    public static boolean enableOverlapDetection = true;
+
+    // ========== Mod compatibility ==========
+    /**
+     * Enable/disable EnderIO machine acceleration support.
+     */
+    public static boolean enableEnderIOAcceleration = true;
 
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
-        greeting = configuration.getString("greeting", Configuration.CATEGORY_GENERAL, greeting, "How shall I greet?");
-
+        // ---- Acceleration category ----
         enableAccelerateGregTechMachine = configuration.getBoolean(
             "enableAccelerateGregTechMachine",
             "Acceleration",
@@ -30,6 +66,71 @@ public class Config {
             0.0F,
             1.0F,
             "Discount factor for GregTech machine acceleration (0.0 to 1.0)");
+
+        // ---- Radius limits ----
+        maxXRadius = configuration.getInt(
+            "maxXRadius",
+            "Radius",
+            maxXRadius,
+            0,
+            16,
+            "Maximum X-axis radius for torches (0 = 1 block, 4 = 9 blocks)");
+
+        maxYRadius = configuration.getInt(
+            "maxYRadius",
+            "Radius",
+            maxYRadius,
+            0,
+            8,
+            "Maximum Y-axis radius for torches (0 = 1 block, 1 = 3 blocks)");
+
+        maxZRadius = configuration.getInt(
+            "maxZRadius",
+            "Radius",
+            maxZRadius,
+            0,
+            16,
+            "Maximum Z-axis radius for torches (0 = 1 block, 4 = 9 blocks)");
+
+        // ---- Speed limits ----
+        maxSpeedLevel = configuration.getInt(
+            "maxSpeedLevel",
+            "Speed",
+            maxSpeedLevel,
+            0,
+            32,
+            "Maximum speed slider level (0-based). Higher values allow more acceleration steps.");
+
+        // ---- Performance ----
+        enableTickBudget = configuration.getBoolean(
+            "enableTickBudget",
+            "Performance",
+            enableTickBudget,
+            "Enable per-tick time budget to prevent server lag. "
+                + "When enabled, each torch stops accelerating if it exceeds tickBudgetNanos.");
+
+        tickBudgetNanos = configuration.getInt(
+            "tickBudgetNanos",
+            "Performance",
+            (int) tickBudgetNanos,
+            100_000,
+            100_000_000,
+            "Per-tick time budget in nanoseconds (default: 1_000_000 = 1ms). "
+                + "Lower values reduce lag but may limit acceleration throughput.");
+
+        enableOverlapDetection = configuration.getBoolean(
+            "enableOverlapDetection",
+            "Performance",
+            enableOverlapDetection,
+            "Enable overlap detection to prevent multiple torches from accelerating the same tile "
+                + "entity multiple times per tick.");
+
+        // ---- Compatibility ----
+        enableEnderIOAcceleration = configuration.getBoolean(
+            "enableEnderIOAcceleration",
+            "Compatibility",
+            enableEnderIOAcceleration,
+            "Enable EnderIO machine acceleration support via mixins.");
 
         if (configuration.hasChanged()) {
             configuration.save();

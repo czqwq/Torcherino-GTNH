@@ -11,16 +11,21 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 
+import com.czqwq.Torcherino.Config;
 import com.czqwq.Torcherino.Torcherino;
+import com.czqwq.Torcherino.api.interfaces.ITorcherinoTile;
+import com.czqwq.Torcherino.util.AccelerationHelper;
 import com.google.common.collect.ImmutableSet;
 
 import gregtech.api.metatileentity.BaseMetaTileEntity;
 import gregtech.common.tileentities.machines.basic.MTEWorldAccelerator;
 
 /**
- * Classic Torcherino implementation based on MockTurtle7's original logic
+ * Classic Torcherino implementation based on MockTurtle7's original logic.
+ * Uses chat-based mode cycling (sneak-click = speed, normal-click = area).
+ * Refactored to use {@link AccelerationHelper} for shared acceleration logic.
  */
-public class TileTorcherinoClassic extends TileEntity {
+public class TileTorcherinoClassic extends TileEntity implements ITorcherinoTile {
 
     private static final ImmutableSet<Block> blacklist = ImmutableSet.of(
         Blocks.air,
@@ -34,6 +39,7 @@ public class TileTorcherinoClassic extends TileEntity {
 
     private static final String[] MODES = new String[] { "Stopped", "Radius: +1, Area: 3x3x3",
         "Radius: +2, Area: 5x3x5", "Radius: +3, Area: 7x3x7", "Radius: +4, Area: 9x3x9" };
+
     private static final String[] SPEEDS = new String[] { "Stopped", "100% increase", "200% increase", "300% increase",
         "400% increase" };
 
@@ -41,14 +47,9 @@ public class TileTorcherinoClassic extends TileEntity {
     private byte speed;
     private byte mode;
     private byte cachedMode;
-    private Random rand;
+    private final Random rand;
 
-    private int xMin;
-    private int yMin;
-    private int zMin;
-    private int xMax;
-    private int yMax;
-    private int zMax;
+    private int xMin, yMin, zMin, xMax, yMax, zMax;
 
     public TileTorcherinoClassic() {
         this.isActive = true;
@@ -56,19 +57,66 @@ public class TileTorcherinoClassic extends TileEntity {
         this.rand = new Random();
     }
 
+    // ========== ITorcherinoTile implementation ==========
+
+    @Override
+    public boolean getActive() {
+        return this.isActive;
+    }
+
+    @Override
+    public void setActive(boolean active) {
+        this.isActive = active;
+    }
+
+    @Override
+    public boolean isStopped() {
+        return this.mode == 0 || this.speed == 0;
+    }
+
+    @Override
+    public int getEffectiveSpeed() {
+        return this.speed * getSpeedMultiplier();
+    }
+
+    @Override
+    public int getTorchX() {
+        return this.xCoord;
+    }
+
+    @Override
+    public int getTorchY() {
+        return this.yCoord;
+    }
+
+    @Override
+    public int getTorchZ() {
+        return this.zCoord;
+    }
+
+    @Override
+    public int getXRadius() {
+        return this.mode;
+    }
+
+    @Override
+    public int getYRadius() {
+        return 1;
+    }
+
+    @Override
+    public int getZRadius() {
+        return this.mode;
+    }
+
+    // ========== Speed multiplier ==========
+
     /**
-     * Override this in subclasses to provide different speed multipliers.
+     * Override in subclasses to provide different speed multipliers.
      * Base: 1x, Compressed: 9x, Double Compressed: 81x
      */
     protected int getSpeedMultiplier() {
         return 1;
-    }
-
-    /**
-     * Gets the effective acceleration speed considering the multiplier
-     */
-    protected int getEffectiveSpeed() {
-        return this.speed * getSpeedMultiplier();
     }
 
     protected byte getSpeed() {
@@ -76,13 +124,14 @@ public class TileTorcherinoClassic extends TileEntity {
     }
 
     protected void setSpeed(byte speed) {
-        this.speed = speed;
+        this.speed = (byte) Math.max(0, Math.min(speed, Config.maxSpeedLevel));
     }
+
+    // ========== Tick / Acceleration ==========
 
     @Override
     public void updateEntity() {
         if (this.worldObj.isRemote) return;
-
         if (!this.isActive || this.mode == 0 || this.speed == 0) return;
 
         if (this.cachedMode != this.mode) {
@@ -108,38 +157,25 @@ public class TileTorcherinoClassic extends TileEntity {
                         for (int i = 0; i < effectiveSpeed; i++) {
                             try {
                                 block.updateTick(this.worldObj, x, y, z, this.rand);
-                            } catch (Exception e) {
-                                // Ignore exceptions during acceleration
-                            }
+                            } catch (Exception ignored) {}
                         }
                     }
 
                     if (block.hasTileEntity(this.worldObj.getBlockMetadata(x, y, z))) {
                         final TileEntity tile = this.worldObj.getTileEntity(x, y, z);
-                        if (tile != null && !(tile instanceof TileTorcherinoClassic)
-                            && !(tile instanceof TileCompressedTorcherinoClassic)
-                            && !(tile instanceof TileDoubleCompressedTorcherinoClassic)
-                            && !(tile instanceof TileTorcherinoAccelerated)
-                            && !(tile instanceof TileCompressedTorcherino)
-                            && !(tile instanceof TileDoubleCompressedTorcherino)
+                        if (tile != null && !AccelerationHelper.isTorcherinoTile(tile)
                             && !tile.isInvalid()
                             && !isGTWorldAccelerator(tile)) {
                             for (int i = 0; i < effectiveSpeed; i++) {
                                 try {
                                     tile.updateEntity();
-                                } catch (Exception e) {
-                                    // Ignore exceptions during acceleration
-                                }
+                                } catch (Exception ignored) {}
                             }
                         }
                     }
                 }
             }
         }
-    }
-
-    public void setActive(boolean active) {
-        this.isActive = active;
     }
 
     private static boolean isGTWorldAccelerator(TileEntity te) {
@@ -150,14 +186,17 @@ public class TileTorcherinoClassic extends TileEntity {
         return false;
     }
 
+    // ========== Mode / Interaction ==========
+
     public void changeMode(boolean sneaking, EntityPlayer player) {
         if (sneaking) {
-            if (this.speed < SPEEDS.length - 1) this.speed++;
+            if (this.speed < Config.maxSpeedLevel) this.speed++;
             else this.speed = 0;
             player.addChatComponentMessage(
                 new ChatComponentText(translateToLocal("torcherino.change_mode_speed") + " " + getSpeedDescription()));
         } else {
-            if (this.mode < MODES.length - 1) this.mode++;
+            int maxMode = Math.min(MODES.length - 1, Config.maxXRadius);
+            if (this.mode < maxMode) this.mode++;
             else this.mode = 0;
             player.addChatComponentMessage(
                 new ChatComponentText(translateToLocal("torcherino.change_mode_area") + " " + getModeDescription()));
@@ -165,12 +204,24 @@ public class TileTorcherinoClassic extends TileEntity {
     }
 
     public String getSpeedDescription() {
-        return SPEEDS[this.speed];
+        if (speed == 0) return "Stopped";
+        int idx = Math.min(this.speed, SPEEDS.length - 1);
+        if (idx < SPEEDS.length && !SPEEDS[idx].equals("Stopped")) return SPEEDS[idx];
+        // Dynamic fallback for speed levels beyond hardcoded array
+        int pct = this.speed * getSpeedMultiplier() * 100;
+        return pct + "% increase";
     }
 
     public String getModeDescription() {
-        return MODES[this.mode];
+        if (mode == 0) return "Stopped";
+        int idx = Math.min(this.mode, MODES.length - 1);
+        if (idx < MODES.length && !MODES[idx].equals("Stopped")) return MODES[idx];
+        // Dynamic fallback for mode/radius levels beyond hardcoded array
+        int area = this.mode * 2 + 1;
+        return "Radius: +" + this.mode + ", Area: " + area + "x3x" + area;
     }
+
+    // ========== NBT ==========
 
     @Override
     public void writeToNBT(NBTTagCompound nbt) {
@@ -183,8 +234,13 @@ public class TileTorcherinoClassic extends TileEntity {
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
-        this.speed = nbt.getByte("Speed");
-        this.mode = nbt.getByte("Mode");
+        this.speed = (byte) clampInt(nbt.getByte("Speed"), 0, Config.maxSpeedLevel);
+        this.mode = (byte) clampInt(nbt.getByte("Mode"), 0, Config.maxXRadius);
         this.isActive = nbt.getBoolean("IsActive");
+    }
+
+    /** Clamp an int value between min (inclusive) and max (inclusive). */
+    private static int clampInt(int value, int min, int max) {
+        return value < min ? min : value > max ? max : value;
     }
 }

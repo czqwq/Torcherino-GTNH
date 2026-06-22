@@ -19,8 +19,7 @@ public class CommonProxy {
         ModBlocks.init();
         ModItems.init();
 
-        Torcherino.LOG.info(Config.greeting);
-        Torcherino.LOG.info("I am Torcherino at version " + Torcherino.VERSION);
+        Torcherino.LOG.info("Ciallo～(∠・ω< )⌒★");
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)

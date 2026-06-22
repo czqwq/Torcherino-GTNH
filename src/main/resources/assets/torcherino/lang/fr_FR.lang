@@ -1,11 +1,45 @@
 tile.torcherino.name=Torcherino
 tile.compressed_torcherino.name=Torcherino Comprimé
 tile.double_compressed_torcherino.name=Torcherino Double Comprimé
+tile.torcherino_classic.name=Torcherino (Classique)
+tile.compressed_torcherino_classic.name=Torcherino Comprimé (Classique)
+tile.double_compressed_torcherino_classic.name=Torcherino Double Comprimé (Classique)
+
+item.timeVial.name=Fiole Temporelle
+item.timeVial.time=§fTemps: §6%d h §d%d min §a%d s
+
+item.imperfectTimeTwister.name=Distorseur Temporel Imparfait
+item.imperfectTimeTwister.durability=§fDurabilité: §a%d§f/§a%d
+item.imperfectTimeTwister.success=§aAccéléré de %d ticks avec succès
+item.imperfectTimeTwister.noDurability=§cDurabilité insuffisante, veuillez attendre la récupération!
+item.imperfectTimeTwister.notWorking=§cLa machine ne fonctionne pas ou n'a pas de progression à accélérer!
+item.imperfectTimeTwister.notGTMachine=§cCe n'est pas une machine GregTech!
+item.imperfectTimeTwister.cannotAccelerate=§cImpossible d'accélérer cette machine GT
+item.imperfectTimeTwister.cannotAccelerateGenerator=§cImpossible d'accélérer le générateur GT actuel
+item.imperfectTimeTwister.tierTooHigh=§eL'agitateur temporel laisse échapper un grognement, rien ne s'est passé
+
+item.perfectTimeTwister.name=Distorseur Temporel Parfait
+item.perfectTimeTwister.description=§bConsomme de l'EU sans fil pour terminer instantanément les recettes des machines GT
+item.perfectTimeTwister.success=§aConsommé §6%s EU§a et sauté §e%d ticks avec succès
+item.perfectTimeTwister.insufficientEU=§cEU sans fil insuffisant (besoin de §6%s EU§c), impossible d'accélérer!
+item.perfectTimeTwister.notWorking=§cLa machine ne fonctionne pas ou n'a pas de progression à accélérer!
+item.perfectTimeTwister.notGTMachine=§cCe n'est pas une machine GregTech!
+item.perfectTimeTwister.cannotAccelerate=§cImpossible d'accélérer cette machine GT
+item.perfectTimeTwister.cannotAccelerateGenerator=§cImpossible d'accélérer le générateur GT actuel
+item.perfectTimeTwister.accelerationFailed=§cÉchec de l'accélération, voir les journaux pour plus de détails
+item.perfectTimeTwister.advAssLineSliceStuck=§cLa tranche actuelle de la chaîne d'assemblage est bloquée (en attente de matériaux), impossible d'accélérer!
+
 torcherino.change_mode_area=Zone définie sur:
 torcherino.change_mode_speed=Vitesse définie sur:
 torcherino.stopped=Torcherino arrêté
 
-item.imperfectTimeTwister.cannotAccelerateGenerator=§cImpossible d'accélérer le générateur GT actuel
-item.imperfectTimeTwister.tierTooHigh=§eL'agitateur temporel laisse échapper un grognement, rien ne s'est passé
-item.perfectTimeTwister.cannotAccelerateGenerator=§cImpossible d'accélérer le générateur GT actuel
-item.perfectTimeTwister.accelerationFailed=§cÉchec de l'accélération, voir les journaux pour plus de détails
+torcherino.gui.title=Torcherino
+torcherino.gui.speed=Vitesse
+torcherino.gui.x_range=Portée X
+torcherino.gui.y_range=Portée Y
+torcherino.gui.z_range=Portée Z
+
+gui.torcherino.speed=Vitesse:
+gui.torcherino.x_range=Portée X:
+gui.torcherino.y_range=Portée Y:
+gui.torcherino.z_range=Portée Z:
