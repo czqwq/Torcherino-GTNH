@@ -1,9 +1,8 @@
 package com.czqwq.Torcherino.util;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.WeakHashMap;
 
 import net.minecraft.block.Block;
@@ -53,9 +52,20 @@ public final class AccelerationHelper {
             return;
         }
 
-        // Overlap detection: skip if already accelerated this tick by another torch
-        if (Config.enableOverlapDetection && isPositionAcceleratedThisTick(world, x, y, z)) {
-            return;
+        // Overlap detection: only active when stacking acceleration is disabled.
+        // When stacking is enabled (default), multiple torches can accelerate the same
+        // machine cumulatively, so we skip all overlap checks.
+        // When overlap is active, "fastest wins": a faster torch can override a slower
+        // one's claim on a position, ensuring the highest-tier torch always takes effect.
+        final boolean useOverlap = !Config.enableStackingAcceleration && Config.enableOverlapDetection;
+
+        if (useOverlap) {
+            int existingSpeed = getPositionSpeed(world, x, y, z);
+            if (existingSpeed >= timeRate) {
+                // Already accelerated by an equally fast or faster torch this tick
+                return;
+            }
+            // Current torch is faster — it will override the slower claim below
         }
 
         // Tick budget start time
@@ -89,9 +99,9 @@ public final class AccelerationHelper {
         // Allow ITileEntityTickAcceleration implementations to be accelerated even when
         // canUpdate() returns false (e.g. Forestry multiblock parts which are ticked via controller)
         if (tileEntity instanceof ITileEntityTickAcceleration) {
-            // Mark position as accelerated for overlap detection
-            if (Config.enableOverlapDetection) {
-                markPositionAccelerated(world, x, y, z);
+            // Mark position with speed for fastest-wins overlap detection
+            if (useOverlap) {
+                markPositionAccelerated(world, x, y, z, timeRate);
             }
             try {
                 ((ITileEntityTickAcceleration) tileEntity).tickAcceleration(timeRate);
@@ -105,9 +115,9 @@ public final class AccelerationHelper {
             return;
         }
 
-        // Mark position as accelerated for overlap detection
-        if (Config.enableOverlapDetection) {
-            markPositionAccelerated(world, x, y, z);
+        // Mark position with speed for fastest-wins overlap detection
+        if (useOverlap) {
+            markPositionAccelerated(world, x, y, z, timeRate);
         }
 
         // Fallback: call updateEntity() repeatedly
@@ -145,27 +155,31 @@ public final class AccelerationHelper {
     }
 
     /**
-     * Check if a position has already been accelerated this world tick.
+     * Returns the speed of the torch that previously accelerated this position this world tick,
+     * or 0 if the position hasn't been accelerated yet this tick.
+     * Used for "fastest wins" overlap detection.
      */
-    private static boolean isPositionAcceleratedThisTick(World world, int x, int y, int z) {
+    private static int getPositionSpeed(World world, int x, int y, int z) {
         synchronized (worldTrackers) {
             TickTracker tracker = worldTrackers.get(world);
-            if (tracker == null) return false;
+            if (tracker == null) return 0;
             long currentTick = world.getTotalWorldTime();
             if (tracker.worldTick != currentTick) {
                 // New tick, clear tracking
                 tracker.worldTick = currentTick;
                 tracker.acceleratedPositions.clear();
-                return false;
+                return 0;
             }
-            return tracker.acceleratedPositions.contains(packPosition(x, y, z));
+            Integer speed = tracker.acceleratedPositions.get(packPosition(x, y, z));
+            return speed != null ? speed : 0;
         }
     }
 
     /**
-     * Mark a position as having been accelerated this world tick.
+     * Mark a position as having been accelerated this world tick, recording the speed
+     * of the torch that accelerated it. A faster torch can override a slower one's claim.
      */
-    private static void markPositionAccelerated(World world, int x, int y, int z) {
+    private static void markPositionAccelerated(World world, int x, int y, int z, int speed) {
         synchronized (worldTrackers) {
             long currentTick = world.getTotalWorldTime();
             TickTracker tracker = worldTrackers.computeIfAbsent(world, w -> new TickTracker());
@@ -173,7 +187,7 @@ public final class AccelerationHelper {
                 tracker.worldTick = currentTick;
                 tracker.acceleratedPositions.clear();
             }
-            tracker.acceleratedPositions.add(packPosition(x, y, z));
+            tracker.acceleratedPositions.put(packPosition(x, y, z), speed);
         }
     }
 
@@ -193,12 +207,14 @@ public final class AccelerationHelper {
     }
 
     /**
-     * Per-world tick state for overlap detection.
+     * Per-world tick state for fastest-wins overlap detection.
+     * Maps packed position → speed of the torch that accelerated it.
+     * A faster torch can override a slower one's entry; equal or slower is skipped.
      */
     private static class TickTracker {
 
         long worldTick = -1;
         long lastAccessTick = 0;
-        final Set<Long> acceleratedPositions = new HashSet<>(256);
+        final Map<Long, Integer> acceleratedPositions = new HashMap<>(256);
     }
 }

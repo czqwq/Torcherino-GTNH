@@ -37,9 +37,17 @@ public class Config {
     public static long tickBudgetNanos = 1_000_000L;
 
     /**
+     * Enable stacking acceleration: when enabled, multiple torches can accelerate
+     * the same machine, with their effects adding together cumulatively.
+     * When disabled, only the fastest torch covering a position accelerates it.
+     */
+    public static boolean enableStackingAcceleration = false;
+
+    /**
      * Enable overlap detection to prevent multiple torches from double-accelerating
-     * the same tile entities. When enabled, each position is only accelerated once
-     * per world tick, by the fastest torch that covers it.
+     * the same tile entities. Only used when enableStackingAcceleration is false.
+     * When enabled, each position is only accelerated once per world tick,
+     * by the fastest torch that covers it.
      */
     public static boolean enableOverlapDetection = true;
 
@@ -128,12 +136,19 @@ public class Config {
             "Per-tick time budget in nanoseconds (default: 1_000_000 = 1ms). "
                 + "Lower values reduce lag but may limit acceleration throughput.");
 
+        enableStackingAcceleration = configuration.getBoolean(
+            "enableStackingAcceleration",
+            "Performance",
+            enableStackingAcceleration,
+            "Enable stacking acceleration: multiple torches can accelerate the same machine cumulatively. "
+                + "When disabled, only the fastest torch covering a position will accelerate it.");
+
         enableOverlapDetection = configuration.getBoolean(
             "enableOverlapDetection",
             "Performance",
             enableOverlapDetection,
             "Enable overlap detection to prevent multiple torches from accelerating the same tile "
-                + "entity multiple times per tick.");
+                + "entity multiple times per tick. Only used when enableStackingAcceleration is false.");
 
         // ---- Compatibility ----
         enableEnderIOAcceleration = configuration.getBoolean(
