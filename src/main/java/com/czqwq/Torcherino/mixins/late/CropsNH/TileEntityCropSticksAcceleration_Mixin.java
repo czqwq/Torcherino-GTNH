@@ -22,8 +22,7 @@ import com.czqwq.Torcherino.api.interfaces.ITileEntityTickAcceleration;
 @Pseudo
 @SuppressWarnings("UnusedMixin")
 @Mixin(targets = "com.gtnewhorizon.cropsnh.tileentity.TileEntityCropSticks", remap = false)
-public abstract class TileEntityCropSticksAcceleration_Mixin extends TileEntity
-    implements ITileEntityTickAcceleration {
+public abstract class TileEntityCropSticksAcceleration_Mixin extends TileEntity implements ITileEntityTickAcceleration {
 
     /** Internal tick counter that drives the 256-tick growth cycle. */
     @Shadow(remap = false)

@@ -38,8 +38,7 @@ import forestry.api.apiculture.IBeekeepingLogic;
 @Pseudo
 @SuppressWarnings("UnusedMixin")
 @Mixin(targets = "forestry.apiculture.multiblock.TileAlveary", remap = false)
-public abstract class TileAlvearyAcceleration_Mixin extends TileEntity
-    implements ITileEntityTickAcceleration {
+public abstract class TileAlvearyAcceleration_Mixin extends TileEntity implements ITileEntityTickAcceleration {
 
     /** Per-world dedup trackers (by beekeepingLogic identity) to prevent multi-acceleration. */
     private static final Map<World, AlvearyAccelTracker> worldTrackers = new WeakHashMap<>();
@@ -62,9 +61,7 @@ public abstract class TileAlvearyAcceleration_Mixin extends TileEntity
         // canWork() always returns false, so unassembled alvearies are harmless.
         int controllerId = System.identityHashCode(beekeepingLogic);
         synchronized (worldTrackers) {
-            AlvearyAccelTracker tracker = worldTrackers.computeIfAbsent(
-                this.worldObj,
-                w -> new AlvearyAccelTracker());
+            AlvearyAccelTracker tracker = worldTrackers.computeIfAbsent(this.worldObj, w -> new AlvearyAccelTracker());
             long currentTick = this.worldObj.getTotalWorldTime();
             if (tracker.worldTick != currentTick) {
                 tracker.worldTick = currentTick;
