@@ -49,6 +49,16 @@ public class Config {
      */
     public static boolean enableEnderIOAcceleration = true;
 
+    /**
+     * Enable/disable CropsNH crop sticks acceleration support.
+     */
+    public static boolean enableCropsNHAcceleration = true;
+
+    /**
+     * Enable/disable ForestryMC alveary acceleration support.
+     */
+    public static boolean enableForestryAcceleration = true;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -131,6 +141,18 @@ public class Config {
             "Compatibility",
             enableEnderIOAcceleration,
             "Enable EnderIO machine acceleration support via mixins.");
+
+        enableCropsNHAcceleration = configuration.getBoolean(
+            "enableCropsNHAcceleration",
+            "Compatibility",
+            enableCropsNHAcceleration,
+            "Enable CropsNH crop sticks acceleration support via mixins.");
+
+        enableForestryAcceleration = configuration.getBoolean(
+            "enableForestryAcceleration",
+            "Compatibility",
+            enableForestryAcceleration,
+            "Enable ForestryMC alveary acceleration support via mixins.");
 
         if (configuration.hasChanged()) {
             configuration.save();

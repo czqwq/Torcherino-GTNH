@@ -13,6 +13,8 @@ dependencies {
     implementation(gtnhDev("ModularUI2"))
     implementation(gtnhDev("Avaritia"))
     implementation(gtnhDev("Avaritiaddons"))
+    implementation(gtnhDev("CropsNH"))
+    implementation(gtnhDev("ForestryMC"))
     implementation(gtnhDev("neiaddons"))
     implementation('com.github.GTNewHorizons:Binnie:2.5.16:dev')
 //    implementation(gtnhDev("Binnie"))

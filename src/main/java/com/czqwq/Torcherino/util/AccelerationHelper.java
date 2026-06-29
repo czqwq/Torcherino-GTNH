@@ -82,7 +82,26 @@ public final class AccelerationHelper {
 
         // Accelerate tile entity
         TileEntity tileEntity = world.getTileEntity(x, y, z);
-        if (tileEntity == null || isTorcherinoTile(tileEntity) || tileEntity.isInvalid() || !tileEntity.canUpdate()) {
+        if (tileEntity == null || isTorcherinoTile(tileEntity) || tileEntity.isInvalid()) {
+            return;
+        }
+
+        // Allow ITileEntityTickAcceleration implementations to be accelerated even when
+        // canUpdate() returns false (e.g. Forestry multiblock parts which are ticked via controller)
+        if (tileEntity instanceof ITileEntityTickAcceleration) {
+            // Mark position as accelerated for overlap detection
+            if (Config.enableOverlapDetection) {
+                markPositionAccelerated(world, x, y, z);
+            }
+            try {
+                ((ITileEntityTickAcceleration) tileEntity).tickAcceleration(timeRate);
+            } catch (Exception ignored) {
+                // Ignore acceleration exceptions
+            }
+            return;
+        }
+
+        if (!tileEntity.canUpdate()) {
             return;
         }
 
@@ -91,24 +110,15 @@ public final class AccelerationHelper {
             markPositionAccelerated(world, x, y, z);
         }
 
-        // Use ITileEntityTickAcceleration interface if available (GT machines via mixin, etc.)
-        if (tileEntity instanceof ITileEntityTickAcceleration) {
+        // Fallback: call updateEntity() repeatedly
+        for (int i = 0; i < timeRate; i++) {
             try {
-                ((ITileEntityTickAcceleration) tileEntity).tickAcceleration(timeRate);
+                tileEntity.updateEntity();
             } catch (Exception ignored) {
                 // Ignore acceleration exceptions
             }
-        } else {
-            // Fallback: call updateEntity() repeatedly
-            for (int i = 0; i < timeRate; i++) {
-                try {
-                    tileEntity.updateEntity();
-                } catch (Exception ignored) {
-                    // Ignore acceleration exceptions
-                }
-                if (Config.enableTickBudget && System.nanoTime() > budgetEnd) {
-                    return;
-                }
+            if (Config.enableTickBudget && System.nanoTime() > budgetEnd) {
+                return;
             }
         }
     }

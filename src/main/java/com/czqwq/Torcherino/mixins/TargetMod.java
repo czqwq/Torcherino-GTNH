@@ -8,7 +8,9 @@ public enum TargetMod {
     GregTech("GregTech", Mods.GregTech.ID),
     TecTech("TecTech", Mods.TecTech.ID),
     GigaGramFab("GGFab", Mods.GGFab.ID),
-    EnderIO("EnderIO", Mods.EnderIO.ID);
+    EnderIO("EnderIO", Mods.EnderIO.ID),
+    CropsNH("CropsNH", Mods.CropsNH.ID),
+    ForestryMC("ForestryMC", Mods.Forestry.ID);
 
     private final String modId;
     public final String modName;

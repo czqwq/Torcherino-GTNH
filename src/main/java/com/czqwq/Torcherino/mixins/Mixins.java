@@ -1,6 +1,8 @@
 package com.czqwq.Torcherino.mixins;
 
 import static com.czqwq.Torcherino.Config.enableAccelerateGregTechMachine;
+import static com.czqwq.Torcherino.Config.enableCropsNHAcceleration;
+import static com.czqwq.Torcherino.Config.enableForestryAcceleration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +56,20 @@ public enum Mixins {
             .addTargetMod(TargetMod.EnderIO)
             .addCondition(true)),
 
+    CropsNH_Accelerations(MixinClass.newMixinClass("Modify_CropSticks_Acceleration")
+        .setClass("TileEntityCropSticksAcceleration_Mixin")
+        .setPackagePath(PackagePath.CropsNH)
+        .setPhase(Phase.LATE)
+        .addTargetMod(TargetMod.CropsNH)
+        .addCondition(enableCropsNHAcceleration)),
+
+    ForestryMC_Accelerations(MixinClass.newMixinClass("Modify_TileAlveary_Acceleration")
+        .setClass("TileAlvearyAcceleration_Mixin")
+        .setPackagePath(PackagePath.ForestryMC)
+        .setPhase(Phase.LATE)
+        .addTargetMod(TargetMod.ForestryMC)
+        .addCondition(enableForestryAcceleration)),
+
     ;
 
     private final MixinClass[] MIXIN_CLASS;
@@ -94,7 +110,9 @@ public enum Mixins {
 
         GregTech,
         TecTech,
-        EnderIO;
+        EnderIO,
+        CropsNH,
+        ForestryMC;
 
         private final String path;
 
