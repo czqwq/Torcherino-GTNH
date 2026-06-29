@@ -141,7 +141,8 @@ public class Config {
             "Performance",
             enableStackingAcceleration,
             "Enable stacking acceleration: multiple torches can accelerate the same machine cumulatively. "
-                + "When disabled, only the fastest torch covering a position will accelerate it.");
+                + "When disabled, only the fastest torch covering a position will accelerate it."
+                + "Warning: Enabling this may reduce performance.");
 
         enableOverlapDetection = configuration.getBoolean(
             "enableOverlapDetection",
