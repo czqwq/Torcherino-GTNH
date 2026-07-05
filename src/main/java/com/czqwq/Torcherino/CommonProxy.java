@@ -5,6 +5,7 @@ import com.czqwq.Torcherino.init.ModRecipes;
 import com.czqwq.Torcherino.item.ModItems;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
@@ -28,7 +29,15 @@ public class CommonProxy {
     }
 
     // postInit "Handle interaction with other mods, complete your setup based on this." (Remove if not needed)
-    public void postInit(FMLPostInitializationEvent event) {}
+    public void postInit(FMLPostInitializationEvent event) {
+        // Register WAILA providers for wireless torcherino
+        if (Config.enableFlashTorcherino) {
+            FMLInterModComms.sendMessage(
+                "Waila",
+                "register",
+                "com.czqwq.Torcherino.waila.WirelessTorcherinoWailaProvider.callbackRegister");
+        }
+    }
 
     // register server commands in this event handler (Remove if not needed)
     public void serverStarting(FMLServerStartingEvent event) {}

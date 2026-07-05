@@ -22,7 +22,7 @@ public class GTRecipes {
             .itemInputs(
                 new Object[] { OrePrefixes.circuit.get(Materials.UHV), 64 },
                 new Object[] { OrePrefixes.circuit.get(Materials.UEV), 64 },
-                new Object[] { OrePrefixes.circuit.get(Materials.UEV), 64 },
+                new Object[] { OrePrefixes.circuit.get(Materials.UIV), 64 },
                 GTModHandler.getModItem("kekztech", "kekztech_lapotronicenergyunit_block", 1, 8),
                 GTModHandler.getModItem("gregtech", "gt.blockmachines", 8, 11107),
                 GTModHandler.getModItem("minecraft", "clock", 64, 0),

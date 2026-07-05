@@ -18,6 +18,7 @@ import com.czqwq.Torcherino.tile.TileDoubleCompressedTorcherino;
 import com.czqwq.Torcherino.tile.TileDoubleCompressedTorcherinoClassic;
 import com.czqwq.Torcherino.tile.TileTorcherinoAccelerated;
 import com.czqwq.Torcherino.tile.TileTorcherinoClassic;
+import com.czqwq.Torcherino.tile.TileWirelessTorcherinoBase;
 
 /**
  * Shared acceleration logic used by all Torcherino tile entities.
@@ -143,7 +144,8 @@ public final class AccelerationHelper {
             || tile instanceof TileDoubleCompressedTorcherino
             || tile instanceof TileTorcherinoClassic
             || tile instanceof TileCompressedTorcherinoClassic
-            || tile instanceof TileDoubleCompressedTorcherinoClassic;
+            || tile instanceof TileDoubleCompressedTorcherinoClassic
+            || tile instanceof TileWirelessTorcherinoBase;
     }
 
     /**

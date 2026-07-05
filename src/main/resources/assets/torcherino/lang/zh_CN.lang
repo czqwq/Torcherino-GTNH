@@ -43,3 +43,39 @@ gui.torcherino.speed=速度:
 gui.torcherino.x_range=X范围:
 gui.torcherino.y_range=Y范围:
 gui.torcherino.z_range=Z范围:
+
+#无线加速火把
+tile.wireless_torcherino.name=无线加速火把
+tile.compressed_wireless_torcherino.name=压缩无线加速火把
+tile.double_compressed_wireless_torcherino.name=双重压缩无线加速火把
+
+torcherino.gui.wireless.title=无线加速火把
+torcherino.gui.wireless_compressed.title=压缩无线加速火把
+torcherino.gui.wireless_double.title=双重压缩无线加速火把
+torcherino.gui.wireless.global_speed=全局速度
+torcherino.gui.wireless.bound_machines=已绑定机器
+torcherino.gui.wireless.no_machines=暂未绑定机器
+torcherino.gui.wireless.cycle_speed=切换速度
+torcherino.gui.wireless.remove=移除
+torcherino.tooltip.wireless.line1=§7左键机器+闪存: 保存机器坐标
+torcherino.tooltip.wireless.line2=§7右键火把+闪存: 绑定机器
+torcherino.tooltip.wireless.line3=§7右键火把: 打开GUI
+
+torcherino.wireless.datastick.name=无线加速火把链接 [%s]
+torcherino.wireless.datastick.machine_saved=已保存机器"%s"坐标 (%d, %d, %d)。右键火把完成绑定。
+torcherino.wireless.datastick.bound=机器"%s"绑定成功!
+torcherino.wireless.datastick.out_of_range=目标超出火把绑定范围!
+torcherino.wireless.datastick.no_machine=该位置没有机器!
+torcherino.wireless.datastick.machine_gone=已保存的机器不存在了!数据已清除。
+torcherino.wireless.datastick.wrong_dim=已保存的机器在不同维度!数据已清除。
+torcherino.wireless.datastick.cannot_bind_self=不能绑定火把自己!
+torcherino.wireless.datastick.bind_failed=绑定失败(列表可能已满)。
+
+torcherino.gui.wireless.global_label=全局
+torcherino.gui.wireless.use_global=使用全局速度
+torcherino.gui.wireless.override_speed=覆写速度
+torcherino.gui.wireless.select_machine=选择机器序号
+
+torcherino.waila.wireless.global_speed=全局速度
+torcherino.waila.wireless.bound_count=已绑定机器数
+torcherino.waila.wireless.use_global=全局

@@ -67,6 +67,35 @@ public class Config {
      */
     public static boolean enableForestryAcceleration = true;
 
+    // ========== Flash-bound Torcherino settings ==========
+    /**
+     * Enable/disable the flash-bound torcherino feature entirely.
+     */
+    public static boolean enableFlashTorcherino = true;
+
+    /**
+     * Maximum binding range on X axis (per side).
+     * Default: 4 → 9 blocks total (4 left + torch + 4 right).
+     */
+    public static int flashBindingRangeX = 4;
+
+    /**
+     * Maximum binding range on Y axis (per side).
+     * Default: 1 → 3 blocks total (1 below + torch + 1 above).
+     */
+    public static int flashBindingRangeY = 1;
+
+    /**
+     * Maximum binding range on Z axis (per side).
+     * Default: 4 → 9 blocks total (4 front + torch + 4 back).
+     */
+    public static int flashBindingRangeZ = 4;
+
+    /**
+     * Maximum number of machines that can be bound to a single flash torch.
+     */
+    public static int flashMaxBoundMachines = 64;
+
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
 
@@ -169,6 +198,45 @@ public class Config {
             "Compatibility",
             enableForestryAcceleration,
             "Enable ForestryMC alveary acceleration support via mixins.");
+
+        // ---- Flash Torcherino ----
+        enableFlashTorcherino = configuration.getBoolean(
+            "enableFlashTorcherino",
+            "FlashTorcherino",
+            enableFlashTorcherino,
+            "Master switch to enable/disable the Flash-Bound Torcherino feature.");
+
+        flashBindingRangeX = configuration.getInt(
+            "flashBindingRangeX",
+            "FlashTorcherino",
+            flashBindingRangeX,
+            0,
+            16,
+            "X-axis binding range per side for flash torches (4 = 9 blocks wide, matching classic max radius).");
+
+        flashBindingRangeY = configuration.getInt(
+            "flashBindingRangeY",
+            "FlashTorcherino",
+            flashBindingRangeY,
+            0,
+            8,
+            "Y-axis binding range per side for flash torches (1 = 3 blocks tall, matching classic max radius).");
+
+        flashBindingRangeZ = configuration.getInt(
+            "flashBindingRangeZ",
+            "FlashTorcherino",
+            flashBindingRangeZ,
+            0,
+            16,
+            "Z-axis binding range per side for flash torches (4 = 9 blocks deep, matching classic max radius).");
+
+        flashMaxBoundMachines = configuration.getInt(
+            "flashMaxBoundMachines",
+            "FlashTorcherino",
+            flashMaxBoundMachines,
+            1,
+            256,
+            "Maximum number of machines that can be bound to a single flash torch.");
 
         if (configuration.hasChanged()) {
             configuration.save();

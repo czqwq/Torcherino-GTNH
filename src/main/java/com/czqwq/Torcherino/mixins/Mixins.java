@@ -2,6 +2,7 @@ package com.czqwq.Torcherino.mixins;
 
 import static com.czqwq.Torcherino.Config.enableAccelerateGregTechMachine;
 import static com.czqwq.Torcherino.Config.enableCropsNHAcceleration;
+import static com.czqwq.Torcherino.Config.enableFlashTorcherino;
 import static com.czqwq.Torcherino.Config.enableForestryAcceleration;
 
 import java.util.ArrayList;
@@ -69,6 +70,13 @@ public enum Mixins {
         .setPhase(Phase.LATE)
         .addTargetMod(TargetMod.ForestryMC)
         .addCondition(enableForestryAcceleration)),
+
+    GregTech_WirelessGTDataStick(MixinClass.newMixinClass("Add_GT_LeftClick_DataStick")
+        .setClass("GTMachineLeftClickDataStick_Mixin")
+        .setPackagePath(PackagePath.GregTech)
+        .setPhase(Phase.LATE)
+        .addTargetMod(TargetMod.GregTech)
+        .addCondition(enableFlashTorcherino)),
 
     ;
 
