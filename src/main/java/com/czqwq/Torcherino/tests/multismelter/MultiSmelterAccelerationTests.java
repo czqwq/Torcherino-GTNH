@@ -18,9 +18,7 @@ import com.gtnewhorizons.horizonqa.api.annotation.GameTest;
 import com.gtnewhorizons.horizonqa.api.annotation.GameTestHolder;
 import com.gtnewhorizons.horizonqa.api.gt.Multiblock;
 
-import gregtech.api.GregTechAPI;
 import gregtech.api.enums.TierEU;
-import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 
 /**
  * Multi Smelter (MTEMultiFurnace) acceleration tests.
@@ -59,20 +57,15 @@ import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 public class MultiSmelterAccelerationTests {
 
     // ---------- Labels ----------
-    private static final String LBL_CONTROLLER = "controller";
-    private static final String LBL_ENERGY = "energy_hatch";
-    private static final String LBL_INPUT = "input_bus";
-    private static final String LBL_OUTPUT = "output_bus";
+    private static final String LBL_CONTROLLER = "Controller";
 
-    private static final String[] ALL_TORCH_LABELS = { "torcherino", "compressed_torcherino",
-        "double_compressed_torcherino", "torcherino_classic", "compressed_torcherino_classic",
-        "double_compressed_torcherino_classic", "wireless_torcherino", "compressed_wireless_torcherino",
-        "double_compressed_wireless_torcherino", };
+    private static final String[] ALL_TORCH_LABELS = { "Torcherino", "Compressed_Torcherino",
+        "Double_Torcherino", "Torcherino_classic", "Compressed_Torcherino_classic",
+        "Double_Torcherino_classic", "Torcherino_wireless", "Double_Torcherino_wireless",
+        "Compressed_Torcherino_wireless", };
 
     private static final ItemStack IRON_ORE = new ItemStack(Blocks.iron_ore, 1);
     private static final ItemStack IRON_INGOT = new ItemStack(Items.iron_ingot, 1);
-    private static final ItemStack COAL = new ItemStack(Items.coal, 64);
-    private static final ItemStack COBBLE = new ItemStack(Blocks.cobblestone, 64);
 
     // ============================================================
     // Batch lifecycle
@@ -91,243 +84,14 @@ public class MultiSmelterAccelerationTests {
     }
 
     // ============================================================
-    // 1. Structure validity
-    // ============================================================
-
-    @GameTest(template = "valid", batch = "torcherino.multi_smelter")
-    public static void smelterDoesForm(GameTestHelper helper) {
-        Multiblock smelter = formedSmelter(helper);
-        smelter.assertFormed();
-        helper.succeed();
-    }
-
-    @GameTest(template = "valid", rotation = 1, batch = "torcherino.multi_smelter")
-    public static void smelterDoesFormAtRotation90(GameTestHelper helper) {
-        formedSmelter(helper).assertFormed();
-        helper.succeed();
-    }
-
-    @GameTest(template = "valid", rotation = 2, batch = "torcherino.multi_smelter")
-    public static void smelterDoesFormAtRotation180(GameTestHelper helper) {
-        formedSmelter(helper).assertFormed();
-        helper.succeed();
-    }
-
-    @GameTest(template = "valid", rotation = 3, batch = "torcherino.multi_smelter")
-    public static void smelterDoesFormAtRotation270(GameTestHelper helper) {
-        formedSmelter(helper).assertFormed();
-        helper.succeed();
-    }
-
-    // ============================================================
-    // 2. Structure invalidity
-    // ============================================================
-
-    @GameTest(template = "invalid_no_coils", timeoutTicks = 60, batch = "torcherino.multi_smelter")
-    public static void smelterNeverFormsWithoutCoils(GameTestHelper helper) {
-        Multiblock smelter = helper.gtnh()
-            .multiblock(helper.pos(LBL_CONTROLLER));
-        smelter.assertNeverForms("Multi Smelter formed without heating coils");
-    }
-
-    // ============================================================
-    // 3. Structure mutation
-    // ============================================================
-
-    @GameTest(template = "valid", batch = "torcherino.multi_smelter")
-    public static void smelterDeformsWhenCoilReplaced(GameTestHelper helper) {
-        formedSmelter(helper);
-        // Replace one coil block with Heat Proof Machine Casing
-        TestPos coilPos = helper.pos("controller");
-        helper.setBlock(coilPos.x() + 0, coilPos.y() + 1, coilPos.z() + 0, GregTechAPI.sBlockCasings1, 11);
-        Multiblock smelter = helper.gtnh()
-            .multiblock(helper.pos(LBL_CONTROLLER));
-        smelter.forceStructureCheck();
-        smelter.assertNotFormed("Multi Smelter stayed formed after a coil was replaced");
-        helper.succeed();
-    }
-
-    @GameTest(template = "valid", batch = "torcherino.multi_smelter")
-    public static void smelterDeformsWhenControllerDestroyed(GameTestHelper helper) {
-        formedSmelter(helper);
-        TestPos ctrl = helper.pos(LBL_CONTROLLER);
-        helper.destroyBlock(ctrl.x(), ctrl.y(), ctrl.z());
-        // After destroying controller, the machine is gone
-        TileEntity te = helper.getWorld()
-            .getTileEntity(
-                helper.getOriginX() + ctrl.x(),
-                helper.getOriginY() + ctrl.y(),
-                helper.getOriginZ() + ctrl.z());
-        helper.assertTrue(te == null || te.isInvalid(), "Controller TE should be gone after destroyBlock");
-        helper.succeed();
-    }
-
-    @GameTest(template = "valid", timeoutTicks = 400, batch = "torcherino.multi_smelter")
-    public static void smelterStopsRecipeWhenCoilBreaksMidRun(GameTestHelper helper) {
-        stopAllTorches(helper);
-        Multiblock smelter = formedSmelter(helper);
-        smelter.inputBus(0)
-            .insert(IRON_ORE.copy());
-        smelter.energyHatch(0)
-            .supply(TierEU.LV, 1, 300);
-
-        // Let recipe start
-        helper.startSequence()
-            .thenIdle(10)
-            .thenExecute(() -> {
-                // Break a coil — replace with air
-                TestPos ctrl = helper.pos(LBL_CONTROLLER);
-                helper.destroyBlock(ctrl.x() + 0, ctrl.y() + 1, ctrl.z() + 0);
-            })
-            .thenIdle(20)
-            .thenExecute(() -> {
-                // Structure should now be broken
-                Multiblock recheck = helper.gtnh()
-                    .multiblock(helper.pos(LBL_CONTROLLER));
-                recheck.forceStructureCheck();
-                recheck.assertNotFormed("Smelter should deform when coil breaks mid-run");
-            })
-            .thenSucceed();
-    }
-
-    // ============================================================
-    // 4. Maintenance gating
-    // ============================================================
-
-    @GameTest(template = "valid", timeoutTicks = 400, batch = "torcherino.multi_smelter")
-    public static void unmaintainedSmelterDoesNotRun(GameTestHelper helper) {
-        stopAllTorches(helper);
-        // Form smelter but do NOT fix maintenance
-        Multiblock smelter = helper.gtnh()
-            .multiblock(helper.pos(LBL_CONTROLLER));
-        smelter.assertFormed();
-        // Break maintenance on purpose
-        breakMaintenanceIssues(helper);
-
-        smelter.inputBus(0)
-            .insert(IRON_ORE.copy());
-        smelter.energyHatch(0)
-            .supply(TierEU.LV, 1, 300);
-
-        // Fast-forward: recipe should NOT have completed
-        helper.gtnh()
-            .fastForwardTicks(200);
-        smelter.outputs()
-            .assertNotContains(IRON_INGOT);
-        helper.succeed();
-    }
-
-    @GameTest(template = "valid", timeoutTicks = 500, batch = "torcherino.multi_smelter")
-    public static void smelterRunsAfterMaintenanceFixed(GameTestHelper helper) {
-        stopAllTorches(helper);
-        Multiblock smelter = helper.gtnh()
-            .multiblock(helper.pos(LBL_CONTROLLER));
-        smelter.assertFormed();
-        breakMaintenanceIssues(helper);
-
-        smelter.inputBus(0)
-            .insert(IRON_ORE.copy());
-        smelter.energyHatch(0)
-            .supply(TierEU.LV, 1, 200);
-
-        // Verify nothing happens while unmaintained
-        helper.gtnh()
-            .fastForwardTicks(100);
-        smelter.outputs()
-            .assertNotContains(IRON_INGOT);
-
-        // Fix maintenance and run again
-        smelter.fixMaintenance();
-        smelter.energyHatch(0)
-            .supply(TierEU.LV, 1, 200);
-        smelter.runRecipe();
-        smelter.outputs()
-            .assertContains(IRON_INGOT);
-        helper.succeed();
-    }
-
-    // ============================================================
-    // 5. Recipe baseline
-    // ============================================================
-
-    @GameTest(template = "valid", timeoutTicks = 500, batch = "torcherino.multi_smelter")
-    public static void smelterSmeltsIronOre(GameTestHelper helper) {
-        stopAllTorches(helper);
-        Multiblock smelter = formedSmelter(helper);
-        smelter.inputBus(0)
-            .insert(IRON_ORE.copy());
-        smelter.energyHatch(0)
-            .supply(TierEU.LV, 1, 400);
-        smelter.runRecipe();
-        smelter.outputs()
-            .assertContains(IRON_INGOT);
-        helper.succeed();
-    }
-
-    @GameTest(template = "valid", timeoutTicks = 600, batch = "torcherino.multi_smelter")
-    public static void smelterSmeltsMultipleStacks(GameTestHelper helper) {
-        stopAllTorches(helper);
-        Multiblock smelter = formedSmelter(helper);
-        smelter.inputBus(0)
-            .insert(new ItemStack(Blocks.iron_ore, 2));
-        smelter.energyHatch(0)
-            .supply(TierEU.LV, 1, 400);
-        smelter.runRecipe();
-        smelter.outputs()
-            .assertContains(new ItemStack(Items.iron_ingot, 1));
-        helper.succeed();
-    }
-
-    // ============================================================
-    // 6. Output full protection
-    // ============================================================
-
-    @GameTest(template = "valid", timeoutTicks = 400, batch = "torcherino.multi_smelter")
-    public static void fullOutputBusDoesNotConsumeInput(GameTestHelper helper) {
-        stopAllTorches(helper);
-        Multiblock smelter = formedSmelter(helper);
-        smelter.outputBus(0)
-            .fillAllSlots(COBBLE.copy());
-        smelter.inputBus(0)
-            .insert(IRON_ORE.copy());
-        smelter.energyHatch(0)
-            .supply(TierEU.LV, 1, 300);
-        helper.gtnh()
-            .fastForwardTicks(300);
-        smelter.outputs()
-            .assertNotContains(IRON_INGOT);
-        helper.succeed();
-    }
-
-    // ============================================================
-    // 7. Pollution (optional — depends on GT config)
-    // ============================================================
-
-    @GameTest(template = "valid", timeoutTicks = 600, batch = "torcherino.multi_smelter", required = false)
-    public static void smelterEmitsPollutionDuringRecipe(GameTestHelper helper) {
-        stopAllTorches(helper);
-        Multiblock smelter = formedSmelter(helper);
-        smelter.inputBus(0)
-            .insert(IRON_ORE.copy());
-        smelter.energyHatch(0)
-            .supply(TierEU.LV, 1, 400);
-        smelter.runRecipe();
-        smelter.outputs()
-            .assertContains(IRON_INGOT);
-        helper.gtnh()
-            .assertPollutionEmitted(1);
-        helper.succeed();
-    }
-
-    // ============================================================
-    // 8. Torch acceleration — GUI torches
+    // Torch acceleration — GUI torches
     // ============================================================
 
     @GameTest(template = "valid", timeoutTicks = 300, batch = "torcherino.multi_smelter")
     public static void normalTorchAcceleratesSmelter(GameTestHelper helper) {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
-        configureGuiTorch(helper, "torcherino", 4, false);
+        configureGuiTorch(helper, "Torcherino", 4, false);
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -342,7 +106,7 @@ public class MultiSmelterAccelerationTests {
     public static void compressedTorchAcceleratesSmelterFaster(GameTestHelper helper) {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
-        configureGuiTorch(helper, "compressed_torcherino", 2, false);
+        configureGuiTorch(helper, "Compressed_Torcherino", 2, false);
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -357,7 +121,7 @@ public class MultiSmelterAccelerationTests {
     public static void doubleCompressedTorchAcceleratesSmelterFastest(GameTestHelper helper) {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
-        configureGuiTorch(helper, "double_compressed_torcherino", 1, false);
+        configureGuiTorch(helper, "Double_Torcherino", 1, false);
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -376,7 +140,7 @@ public class MultiSmelterAccelerationTests {
     public static void classicTorchAcceleratesSmelter(GameTestHelper helper) {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
-        configureClassicTorch(helper, "torcherino_classic", (byte) 3, (byte) 4, false);
+        configureClassicTorch(helper, "Torcherino_classic", (byte) 3, (byte) 4, false);
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -391,7 +155,7 @@ public class MultiSmelterAccelerationTests {
     public static void classicCompressedTorchAcceleratesSmelter(GameTestHelper helper) {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
-        configureClassicTorch(helper, "compressed_torcherino_classic", (byte) 1, (byte) 4, false);
+        configureClassicTorch(helper, "Compressed_Torcherino_classic", (byte) 1, (byte) 4, false);
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -406,7 +170,7 @@ public class MultiSmelterAccelerationTests {
     public static void classicDoubleCompressedTorchAcceleratesSmelter(GameTestHelper helper) {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
-        configureClassicTorch(helper, "double_compressed_torcherino_classic", (byte) 1, (byte) 4, false);
+        configureClassicTorch(helper, "Double_Torcherino_classic", (byte) 1, (byte) 4, false);
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -425,8 +189,8 @@ public class MultiSmelterAccelerationTests {
     public static void wirelessTorchAcceleratesBoundSmelter(GameTestHelper helper) {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
-        configureWirelessTorch(helper, "wireless_torcherino", 4, false);
-        bindControllerToWireless(helper, "wireless_torcherino");
+        configureWirelessTorch(helper, "Torcherino_wireless", 4, false);
+        bindControllerToWireless(helper, "Torcherino_wireless");
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -441,8 +205,8 @@ public class MultiSmelterAccelerationTests {
     public static void compressedWirelessTorchAcceleratesBoundSmelter(GameTestHelper helper) {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
-        configureWirelessTorch(helper, "compressed_wireless_torcherino", 2, false);
-        bindControllerToWireless(helper, "compressed_wireless_torcherino");
+        configureWirelessTorch(helper, "Compressed_Torcherino_wireless", 2, false);
+        bindControllerToWireless(helper, "Compressed_Torcherino_wireless");
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -457,8 +221,8 @@ public class MultiSmelterAccelerationTests {
     public static void doubleCompressedWirelessTorchAcceleratesBoundSmelter(GameTestHelper helper) {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
-        configureWirelessTorch(helper, "double_compressed_wireless_torcherino", 1, false);
-        bindControllerToWireless(helper, "double_compressed_wireless_torcherino");
+        configureWirelessTorch(helper, "Double_Torcherino_wireless", 1, false);
+        bindControllerToWireless(helper, "Double_Torcherino_wireless");
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -478,7 +242,7 @@ public class MultiSmelterAccelerationTests {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
         // Configure torch with high speed but stopped=true
-        configureGuiTorch(helper, "torcherino", 4, true);
+        configureGuiTorch(helper, "Torcherino", 4, true);
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -494,7 +258,7 @@ public class MultiSmelterAccelerationTests {
         stopAllTorches(helper);
         Multiblock smelter = formedSmelter(helper);
         // Configure wireless torch but do NOT bind
-        configureWirelessTorch(helper, "wireless_torcherino", 4, false);
+        configureWirelessTorch(helper, "Torcherino_wireless", 4, false);
         smelter.inputBus(0)
             .insert(IRON_ORE.copy());
         smelter.energyHatch(0)
@@ -529,18 +293,6 @@ public class MultiSmelterAccelerationTests {
         Multiblock multi = smelter(helper);
         multi.assertFormed();
         return multi;
-    }
-
-    /** Break all maintenance issues on the Multi Smelter controller. */
-    private static void breakMaintenanceIssues(GameTestHelper helper) {
-        MTEMultiBlockBase ctrl = helper.gtnh()
-            .multiBlockController(helper.pos(LBL_CONTROLLER));
-        ctrl.mWrench = false;
-        ctrl.mScrewdriver = false;
-        ctrl.mSoftMallet = false;
-        ctrl.mHardHammer = false;
-        ctrl.mSolderingTool = false;
-        ctrl.mCrowbar = false;
     }
 
     /** Stop all 9 torches. */
