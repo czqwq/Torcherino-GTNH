@@ -59,10 +59,9 @@ public class MultiSmelterAccelerationTests {
     // ---------- Labels ----------
     private static final String LBL_CONTROLLER = "Controller";
 
-    private static final String[] ALL_TORCH_LABELS = { "Torcherino", "Compressed_Torcherino",
-        "Double_Torcherino", "Torcherino_classic", "Compressed_Torcherino_classic",
-        "Double_Torcherino_classic", "Torcherino_wireless", "Double_Torcherino_wireless",
-        "Compressed_Torcherino_wireless", };
+    private static final String[] ALL_TORCH_LABELS = { "Torcherino", "Compressed_Torcherino", "Double_Torcherino",
+        "Torcherino_classic", "Compressed_Torcherino_classic", "Double_Torcherino_classic", "Torcherino_wireless",
+        "Double_Torcherino_wireless", "Compressed_Torcherino_wireless", };
 
     private static final ItemStack IRON_ORE = new ItemStack(Blocks.iron_ore, 1);
     private static final ItemStack IRON_INGOT = new ItemStack(Items.iron_ingot, 1);
