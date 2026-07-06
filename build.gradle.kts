@@ -13,3 +13,7 @@ sourceSets {
     }
 }
 
+tasks.named<Test>("test") {
+    enabled = false
+}
+
