@@ -3,13 +3,14 @@ name: Build and test
 
 on:
   pull_request:
-    branches: [ master, main ]
+    branches: [ master, dev ]
   push:
-    branches: [ master, main ]
+    branches: [ master, dev ]
 
 jobs:
   build-and-test:
     uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
-    with:
-      timeout: 180
     secrets: inherit
+    with:
+      timeout: 150
+      horizonqa: true

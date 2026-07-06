@@ -1,0 +1,68 @@
+{
+  "format_version": 1,
+  "size": [5, 4, 5],
+  "palette": {
+    "A": {"name": "Torcherino:compressed_torcherino", "meta": 5, "label": "压缩加速火把"},
+    "B": {"name": "Torcherino:compressed_torcherino_classic", "meta": 5, "label": "压缩加速火把(传统)"},
+    "C": {"name": "Torcherino:compressed_wireless_torcherino", "meta": 5, "label": "压缩无线加速火把"},
+    "D": {"name": "Torcherino:double_compressed_torcherino", "meta": 5, "label": "双重压缩加速火把"},
+    "E": {"name": "Torcherino:double_compressed_torcherino_classic", "meta": 5, "label": "双重压缩加速火把(传统)"},
+    "F": {"name": "Torcherino:double_compressed_wireless_torcherino", "meta": 5, "label": "双重压缩无线加速火把"},
+    "G": {"name": "Torcherino:torcherino", "meta": 5, "label": "加速火把"},
+    "H": {"name": "Torcherino:torcherino_classic", "meta": 5, "label": "加速火把(传统)"},
+    "I": {"name": "Torcherino:wireless_torcherino", "meta": 5, "label": "无线加速火把"},
+    "J": {"name": "gregtech:gt.blockcasings5", "meta": 0, "label": "Cupronickel Coil Block"},
+    "K": {"name": "gregtech:gt.blockcasings", "meta": 11, "label": "Heat Proof Machine Casing"},
+    "L": {"name": "gregtech:gt.blockmachines", "meta": 2, "label": "Bricked Bronze Hull"},
+    "M": {"name": "gregtech:gt.blockmachines", "meta": 3, "label": "Steel Hull"},
+    "N": {"name": "minecraft:dirt", "meta": 0, "label": "泥土"},
+    "O": {"name": "minecraft:grass", "meta": 0, "label": "草方块"}
+  },
+  "layers": [
+    [
+      "OOOOO",
+      "OOOOO",
+      "ONNOO",
+      "ONNOO",
+      "OOOOO"
+    ],
+    [
+      "...CB",
+      ".LMLH",
+      ".KKLD",
+      ".KKLA",
+      ".EIFG"
+    ],
+    [
+      ".....",
+      ".JJJ.",
+      ".J.J.",
+      ".JJJ.",
+      "....."
+    ],
+    [
+      ".....",
+      ".KKK.",
+      ".KMK.",
+      ".KKK.",
+      "....."
+    ]
+  ],
+  "annotations": {
+    "labels": {
+      "Compressed_Torcherino_wireless": [3, 1, 0],
+      "Compressed_Torcherino": [4, 1, 3],
+      "Compressed_Torcherino_classic": [4, 1, 0],
+      "Controller": [3, 1, 2],
+      "Double_Torcherino": [4, 1, 2],
+      "Double_Torcherino_classic": [1, 1, 4],
+      "Double_Torcherino_wireless": [3, 1, 4],
+      "Energy": [2, 1, 1],
+      "Input": [3, 1, 3],
+      "Output": [3, 1, 1],
+      "Torcherino": [4, 1, 4],
+      "Torcherino_classic": [4, 1, 1],
+      "Torcherino_wireless": [2, 1, 4]
+    }
+  }
+}
