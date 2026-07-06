@@ -6,7 +6,7 @@ package com.czqwq.Torcherino.tile;
 public class TileDoubleCompressedWirelessTorcherino extends TileWirelessTorcherinoBase {
 
     @Override
-    protected int getSpeedMultiplier() {
+    public int getSpeedMultiplier() {
         return 81;
     }
 

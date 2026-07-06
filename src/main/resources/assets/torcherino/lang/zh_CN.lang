@@ -60,6 +60,7 @@ torcherino.gui.wireless.remove=移除
 torcherino.tooltip.wireless.line1=§7左键机器+闪存: 保存机器坐标
 torcherino.tooltip.wireless.line2=§7右键火把+闪存: 绑定机器
 torcherino.tooltip.wireless.line3=§7右键火把: 打开GUI
+torcherino.tooltip.wireless.range=§e范围: %dx%dx%d
 
 torcherino.wireless.datastick.name=无线加速火把链接 [%s]
 torcherino.wireless.datastick.machine_saved=已保存机器"%s"坐标 (%d, %d, %d)。右键火把完成绑定。
@@ -79,3 +80,5 @@ torcherino.gui.wireless.select_machine=选择机器序号
 torcherino.waila.wireless.global_speed=全局速度
 torcherino.waila.wireless.bound_count=已绑定机器数
 torcherino.waila.wireless.use_global=全局
+torcherino.waila.wireless.no_bound=未绑定机器
+torcherino.waila.wireless.shift_hint=按Shift显示全部

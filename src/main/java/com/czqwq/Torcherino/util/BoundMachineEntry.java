@@ -102,6 +102,8 @@ public class BoundMachineEntry {
         int z = tag.getInteger("z");
         int dim = tag.getInteger("dim");
         int speed = tag.getInteger("speed");
+        // Clamp to config max in case the config was reduced since last save
+        speed = Math.max(0, Math.min(speed, com.czqwq.Torcherino.Config.maxSpeedLevel));
         return new BoundMachineEntry(x, y, z, dim, speed);
     }
 

@@ -10,7 +10,8 @@ public enum TargetMod {
     GigaGramFab("GGFab", Mods.GGFab.ID),
     EnderIO("EnderIO", Mods.EnderIO.ID),
     CropsNH("CropsNH", Mods.CropsNH.ID),
-    ForestryMC("ForestryMC", Mods.Forestry.ID);
+    ForestryMC("ForestryMC", Mods.Forestry.ID),
+    OmniOcular("OmniOcularUnofficial", "OmniOcularUnofficial");
 
     private final String modId;
     public final String modName;

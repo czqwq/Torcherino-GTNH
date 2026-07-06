@@ -7,12 +7,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 
 import com.cleanroommc.modularui.api.IGuiHolder;
 import com.cleanroommc.modularui.api.drawable.IKey;
@@ -38,10 +38,6 @@ import com.czqwq.Torcherino.api.interfaces.ITorcherinoTile;
 import com.czqwq.Torcherino.util.AccelerationHelper;
 import com.czqwq.Torcherino.util.BoundMachineEntry;
 
-import mcp.mobius.waila.api.IWailaConfigHandler;
-import mcp.mobius.waila.api.IWailaDataAccessor;
-import mcp.mobius.waila.api.IWailaDataProvider;
-
 /**
  * Abstract base for wireless (flash-bound) Torcherino tiles.
  * Accelerates only explicitly bound TE blocks, not area-based.
@@ -50,8 +46,7 @@ import mcp.mobius.waila.api.IWailaDataProvider;
  * Subclasses only need to provide {@link #getSpeedMultiplier()}, {@link #getGuiTitleKey()},
  * and {@link #getGuiPanelId()}.
  */
-public abstract class TileWirelessTorcherinoBase extends TileEntity
-    implements IGuiHolder<PosGuiData>, ITorcherinoTile, IWailaDataProvider {
+public abstract class TileWirelessTorcherinoBase extends TileEntity implements IGuiHolder<PosGuiData>, ITorcherinoTile {
 
     // ========== Constants ==========
     private static final int VALIDATE_INTERVAL = 100; // ticks between bound machine validation
@@ -96,17 +91,17 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
 
     @Override
     public int getXRadius() {
-        return Config.flashBindingRangeX;
+        return Config.wirelessTorchRadius;
     }
 
     @Override
     public int getYRadius() {
-        return Config.flashBindingRangeY;
+        return 128; // Full world height (0–255), actual bounds ignore Y
     }
 
     @Override
     public int getZRadius() {
-        return Config.flashBindingRangeZ;
+        return Config.wirelessTorchRadius;
     }
 
     @Override
@@ -116,13 +111,18 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
 
     @Override
     public int getEffectiveSpeed() {
-        return globalSpeedLevel * getSpeedMultiplier();
+        return Math.min(globalSpeedLevel, Config.maxSpeedLevel) * getSpeedMultiplier();
     }
 
     // ========== Abstract methods ==========
 
     /** @return speed multiplier: 1 for normal, 9 for compressed, 81 for double compressed. */
-    protected abstract int getSpeedMultiplier();
+    public abstract int getSpeedMultiplier();
+
+    /** @return the global speed slider level (0-based, for WAILA NBT sync). */
+    public int getGlobalSpeedLevel() {
+        return globalSpeedLevel;
+    }
 
     /** @return GUI title translation key. */
     protected abstract String getGuiTitleKey();
@@ -138,11 +138,11 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
 
     /**
      * Check if a position is within the configured binding range of this torch.
+     * Y axis is not checked — wireless torches cover full world height (0–255).
      */
     public boolean isInRange(int x, int y, int z) {
-        return Math.abs(x - this.xCoord) <= Config.flashBindingRangeX
-            && Math.abs(y - this.yCoord) <= Config.flashBindingRangeY
-            && Math.abs(z - this.zCoord) <= Config.flashBindingRangeZ;
+        return Math.abs(x - this.xCoord) <= Config.wirelessTorchRadius
+            && Math.abs(z - this.zCoord) <= Config.wirelessTorchRadius;
     }
 
     /**
@@ -191,9 +191,22 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
 
     /**
      * Get the effective speed for a bound machine (per-machine override or global).
+     * Values are always clamped to the current Config.maxSpeedLevel to handle
+     * config hot-reloads where the limit may have been reduced since last save.
      */
     private int getEffectiveMachineSpeed(BoundMachineEntry entry) {
-        int level = entry.perMachineSpeed > 0 ? entry.perMachineSpeed : this.globalSpeedLevel;
+        int max = Config.maxSpeedLevel;
+        int level;
+        if (entry.perMachineSpeed > 0) {
+            level = Math.min(entry.perMachineSpeed, max);
+            // Persist the clamp so the GUI and NBT stay consistent
+            if (entry.perMachineSpeed > max) {
+                entry.perMachineSpeed = max;
+                this.markDirty();
+            }
+        } else {
+            level = Math.min(this.globalSpeedLevel, max);
+        }
         return level * getSpeedMultiplier();
     }
 
@@ -265,8 +278,7 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
         });
         // No allowC2S: boundListString is server→client only
 
-        // Command sync: client sends remove/speed commands to server
-        // Uses separate client/server setters to avoid client-side TE mutation
+        // Command sync: client sends remove commands to server
         StringSyncValue commandSync = new StringSyncValue(
             () -> "", // client getter
             cmd -> {}, // client setter: NO-OP — commands only processed on server
@@ -287,21 +299,6 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
                             boundListString.notifyUpdate();
                         } catch (NumberFormatException ignored) {}
                     }
-                } else if (cmd.startsWith("speed:")) {
-                    String[] parts = cmd.substring(6)
-                        .split(",");
-                    if (parts.length == 5) {
-                        try {
-                            setPerMachineSpeed(
-                                Integer.parseInt(parts[0]),
-                                Integer.parseInt(parts[1]),
-                                Integer.parseInt(parts[2]),
-                                Integer.parseInt(parts[3]),
-                                Integer.parseInt(parts[4]));
-                            markDirty();
-                            boundListString.notifyUpdate();
-                        } catch (NumberFormatException ignored) {}
-                    }
                 }
             }).allowC2S();
 
@@ -311,25 +308,32 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
             markDirty();
         }).allowC2S();
 
-        // Per-machine speed (S2C only — value derived from boundListString)
-        // Client getter reads from synced boundListString; server getter reads from TE list directly
-        IntSyncValue perMachineSpeed = new IntSyncValue(
+        // Per-machine speed (C2S: slider directly updates the selected bound machine on server)
+        DoubleSyncValue perMachineSpeed = new DoubleSyncValue(
             // Client getter: parse from synced boundListString
             () -> {
                 ParsedEntry e = ParsedEntry.tryParse(boundListString.getValue(), selectedIdx.getIntValue());
-                return e != null ? e.speed : 0;
+                return e != null ? (double) e.speed : 0.0;
             },
-            null, // client setter: not used — speed changes go through commandSync
+            v -> {}, // client setter: NO-OP — value set by slider sync; must be non-null
+                     // to prevent fallback to server setter on the client side
             // Server getter: read directly from TE boundMachines list
             () -> {
-                if (boundMachines.isEmpty()) return 0;
+                if (boundMachines.isEmpty()) return 0.0;
                 int idx = clampIdx(selectedMachineIndex);
-                if (idx >= boundMachines.size()) return 0;
-                return boundMachines.get(idx).perMachineSpeed;
+                if (idx >= boundMachines.size()) return 0.0;
+                return (double) boundMachines.get(idx).perMachineSpeed;
             },
-            null // server setter: not used
-        );
-        // No allowC2S: speed changes flow through commandSync, S2C feedback through detectAndSendChanges
+            // Server setter: update the selected bound machine's speed
+            v -> {
+                if (boundMachines.isEmpty()) return;
+                int idx = clampIdx(selectedMachineIndex);
+                if (idx >= boundMachines.size()) return;
+                int val = Math.max(0, Math.min((int) Math.round(v), Config.maxSpeedLevel));
+                boundMachines.get(idx).perMachineSpeed = val;
+                this.markDirty();
+                boundListString.notifyUpdate();
+            }).allowC2S();
 
         syncManager.syncValue("globalSpeed", globalSpeedValue);
         syncManager.syncValue("boundListString", boundListString);
@@ -463,21 +467,17 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
             .height(12)
             .tooltip(t -> t.addLine(translateToLocal("torcherino.gui.wireless.select_machine"))));
 
-        // Per-machine speed override slider (no allowC2S: changes flow through commandSync)
-        panel.child(new SliderWidget().value(new DoubleSyncValue(() -> (double) perMachineSpeed.getIntValue(), v -> {
-            int val = (int) Math.round(v);
-            ParsedEntry e = ParsedEntry.tryParse(boundListString.getValue(), selectedIdx.getIntValue());
-            if (e == null) return;
-            commandSync.setStringValue("speed:" + e.x + "," + e.y + "," + e.z + "," + e.dim + "," + val, true, true);
-        }))
-            .bounds(0, Config.maxSpeedLevel)
-            .background(sliderBg)
-            .left(8)
-            .top(ctrlY + 16)
-            .width(160)
-            .height(10));
+        // Per-machine speed override slider (C2S: updates selected bound machine directly)
+        panel.child(
+            new SliderWidget().value(perMachineSpeed)
+                .bounds(0, Config.maxSpeedLevel)
+                .background(sliderBg)
+                .left(8)
+                .top(ctrlY + 16)
+                .width(160)
+                .height(10));
         panel.child(new TextWidget<>(new DynamicKey(() -> {
-            int v = perMachineSpeed.getIntValue();
+            int v = (int) perMachineSpeed.getDoubleValue();
             return IKey
                 .str(v == 0 ? translateToLocal("torcherino.gui.wireless.global_label") : (v * multiplier * 100) + "%");
         })).left(78)
@@ -590,6 +590,29 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
         return value < min ? min : value > max ? max : value;
     }
 
+    // ========== Client sync (vanilla description packet) ==========
+
+    /**
+     * Sync bound-machine data to the client via the vanilla description-packet
+     * mechanism. {@link #markDirty()} triggers this automatically whenever the
+     * bound list or speed changes.
+     * <p>
+     * This is what lets {@code WirelessBeamRenderer} read
+     * {@link #getBoundMachines()} on the client — without this the client-side
+     * TE always sees an empty list.
+     */
+    @Override
+    public Packet getDescriptionPacket() {
+        NBTTagCompound tag = new NBTTagCompound();
+        this.writeToNBT(tag);
+        return new S35PacketUpdateTileEntity(this.xCoord, this.yCoord, this.zCoord, this.blockMetadata, tag);
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+        this.readFromNBT(pkt.func_148857_g());
+    }
+
     // ========== Tick / Acceleration ==========
 
     @Override
@@ -600,7 +623,14 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
         this.lastTickProcessed = currentTick;
 
         // Early exit
-        if (this.worldObj.isRemote || !this.is_active || isStopped || globalSpeedLevel == 0) return;
+        if (this.worldObj.isRemote || !this.is_active || isStopped) return;
+
+        // Clamp global speed to config max (handles config hot-reload shrinking the limit)
+        if (globalSpeedLevel > Config.maxSpeedLevel) {
+            globalSpeedLevel = Config.maxSpeedLevel;
+            this.markDirty();
+        }
+        if (globalSpeedLevel == 0) return;
 
         int effectiveSpeed = getEffectiveSpeed();
         if (effectiveSpeed <= 0) return;
@@ -642,79 +672,5 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity
     @Override
     public void onChunkUnload() {
         super.onChunkUnload();
-    }
-
-    // ========== WAILA (IWailaDataProvider) ==========
-
-    @Override
-    public ItemStack getWailaStack(IWailaDataAccessor accessor, IWailaConfigHandler config) {
-        return null; // use default stack
-    }
-
-    @Override
-    public List<String> getWailaHead(ItemStack itemStack, List<String> currenttip, IWailaDataAccessor accessor,
-        IWailaConfigHandler config) {
-        return currenttip;
-    }
-
-    @Override
-    public List<String> getWailaBody(ItemStack itemStack, List<String> currenttip, IWailaDataAccessor accessor,
-        IWailaConfigHandler config) {
-        NBTTagCompound tag = accessor.getNBTData();
-        int count = tag.getInteger("waila_bm_count");
-        int globalSpeed = tag.getInteger("waila_global_speed");
-        int multiplier = getSpeedMultiplier();
-
-        currenttip.add(
-            translateToLocal("torcherino.waila.wireless.global_speed") + ": " + (globalSpeed * multiplier * 100) + "%");
-        currenttip.add(translateToLocal("torcherino.waila.wireless.bound_count") + ": " + count);
-
-        if (count > 0) {
-            NBTTagList entries = tag.getTagList("waila_bm_entries", 10);
-            int show = Math.min(entries.tagCount(), 5);
-            for (int i = 0; i < show; i++) {
-                NBTTagCompound entryTag = entries.getCompoundTagAt(i);
-                String name = entryTag.getString("name");
-                int x = entryTag.getInteger("x");
-                int y = entryTag.getInteger("y");
-                int z = entryTag.getInteger("z");
-                int speed = entryTag.getInteger("speed");
-                String speedStr = speed > 0 ? (speed * multiplier * 100) + "%"
-                    : translateToLocal("torcherino.waila.wireless.use_global");
-                currenttip.add("  " + name + " (" + x + ", " + y + ", " + z + ") [" + speedStr + "]");
-            }
-            if (entries.tagCount() > 5) {
-                currenttip.add("  ... +" + (entries.tagCount() - 5) + " more");
-            }
-        }
-        return currenttip;
-    }
-
-    @Override
-    public List<String> getWailaTail(ItemStack itemStack, List<String> currenttip, IWailaDataAccessor accessor,
-        IWailaConfigHandler config) {
-        return currenttip;
-    }
-
-    @Override
-    public NBTTagCompound getNBTData(EntityPlayerMP player, TileEntity tile, NBTTagCompound tag, World world, int x,
-        int y, int z) {
-        tag.setInteger("waila_bm_count", boundMachines.size());
-        tag.setInteger("waila_global_speed", globalSpeedLevel);
-
-        NBTTagList entries = new NBTTagList();
-        int limit = Math.min(boundMachines.size(), 6); // 5 shown + 1 for "more" check
-        for (int i = 0; i < limit; i++) {
-            BoundMachineEntry entry = boundMachines.get(i);
-            NBTTagCompound entryTag = new NBTTagCompound();
-            entryTag.setString("name", entry.getLocalizedName(world));
-            entryTag.setInteger("x", entry.x);
-            entryTag.setInteger("y", entry.y);
-            entryTag.setInteger("z", entry.z);
-            entryTag.setInteger("speed", entry.perMachineSpeed > 0 ? entry.perMachineSpeed : 0);
-            entries.appendTag(entryTag);
-        }
-        tag.setTag("waila_bm_entries", entries);
-        return tag;
     }
 }

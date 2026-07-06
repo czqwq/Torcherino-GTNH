@@ -10,10 +10,17 @@ public class Config {
     public static boolean enableAccelerateGregTechMachine = true;
     public static float accelerateGregTechMachineDiscount = 0.8F;
 
-    // ========== Radius limits ==========
+    // ========== Radius limits (non-wireless torches) ==========
     public static int maxXRadius = 4;
     public static int maxYRadius = 1;
     public static int maxZRadius = 4;
+
+    // ========== Wireless Torcherino ==========
+    /**
+     * X/Z radius for wireless (flash-bound) torches. Default 8 = 17×?×17 area (one chunk wide).
+     * Y axis always covers full world height (0–255) regardless of this setting.
+     */
+    public static int wirelessTorchRadius = 8;
 
     // ========== Speed limits ==========
     /**
@@ -74,24 +81,6 @@ public class Config {
     public static boolean enableFlashTorcherino = true;
 
     /**
-     * Maximum binding range on X axis (per side).
-     * Default: 4 → 9 blocks total (4 left + torch + 4 right).
-     */
-    public static int flashBindingRangeX = 4;
-
-    /**
-     * Maximum binding range on Y axis (per side).
-     * Default: 1 → 3 blocks total (1 below + torch + 1 above).
-     */
-    public static int flashBindingRangeY = 1;
-
-    /**
-     * Maximum binding range on Z axis (per side).
-     * Default: 4 → 9 blocks total (4 front + torch + 4 back).
-     */
-    public static int flashBindingRangeZ = 4;
-
-    /**
      * Maximum number of machines that can be bound to a single flash torch.
      */
     public static int flashMaxBoundMachines = 64;
@@ -121,7 +110,7 @@ public class Config {
             maxXRadius,
             0,
             16,
-            "Maximum X-axis radius for torches (0 = 1 block, 4 = 9 blocks)");
+            "Maximum X-axis radius for area torches (0 = 1 block, 4 = 9 blocks).");
 
         maxYRadius = configuration.getInt(
             "maxYRadius",
@@ -129,7 +118,7 @@ public class Config {
             maxYRadius,
             0,
             8,
-            "Maximum Y-axis radius for torches (0 = 1 block, 1 = 3 blocks)");
+            "Maximum Y-axis radius for area torches (0 = 1 block, 1 = 3 blocks).");
 
         maxZRadius = configuration.getInt(
             "maxZRadius",
@@ -137,7 +126,16 @@ public class Config {
             maxZRadius,
             0,
             16,
-            "Maximum Z-axis radius for torches (0 = 1 block, 4 = 9 blocks)");
+            "Maximum Z-axis radius for area torches (0 = 1 block, 4 = 9 blocks).");
+
+        // ---- Wireless Torcherino ----
+        wirelessTorchRadius = configuration.getInt(
+            "wirelessTorchRadius",
+            "WirelessTorcherino",
+            wirelessTorchRadius,
+            0,
+            16,
+            "X/Z radius for wireless torches (8 = one chunk wide, 17 blocks). Y always covers full height.");
 
         // ---- Speed limits ----
         maxSpeedLevel = configuration.getInt(
@@ -206,30 +204,6 @@ public class Config {
             enableFlashTorcherino,
             "Master switch to enable/disable the Flash-Bound Torcherino feature.");
 
-        flashBindingRangeX = configuration.getInt(
-            "flashBindingRangeX",
-            "FlashTorcherino",
-            flashBindingRangeX,
-            0,
-            16,
-            "X-axis binding range per side for flash torches (4 = 9 blocks wide, matching classic max radius).");
-
-        flashBindingRangeY = configuration.getInt(
-            "flashBindingRangeY",
-            "FlashTorcherino",
-            flashBindingRangeY,
-            0,
-            8,
-            "Y-axis binding range per side for flash torches (1 = 3 blocks tall, matching classic max radius).");
-
-        flashBindingRangeZ = configuration.getInt(
-            "flashBindingRangeZ",
-            "FlashTorcherino",
-            flashBindingRangeZ,
-            0,
-            16,
-            "Z-axis binding range per side for flash torches (4 = 9 blocks deep, matching classic max radius).");
-
         flashMaxBoundMachines = configuration.getInt(
             "flashMaxBoundMachines",
             "FlashTorcherino",
@@ -238,8 +212,44 @@ public class Config {
             256,
             "Maximum number of machines that can be bound to a single flash torch.");
 
+        // Clean up deprecated config entries from previous versions
+        cleanupDeprecatedConfig(configuration);
+
         if (configuration.hasChanged()) {
             configuration.save();
+        }
+    }
+
+    /**
+     * Remove obsolete config keys left over from older mod versions.
+     * Called automatically during {@link #synchronizeConfiguration(File)}.
+     */
+    private static void cleanupDeprecatedConfig(Configuration config) {
+        boolean changed = false;
+
+        // Removed in: replaced by WirelessTorcherino.wirelessTorchRadius
+        if (config.hasKey("FlashTorcherino", "flashBindingRangeX")) {
+            config.getCategory("FlashTorcherino")
+                .remove("flashBindingRangeX");
+            changed = true;
+        }
+
+        // Removed in: Y-axis binding → always full world height (wireless only)
+        if (config.hasKey("FlashTorcherino", "flashBindingRangeY")) {
+            config.getCategory("FlashTorcherino")
+                .remove("flashBindingRangeY");
+            changed = true;
+        }
+
+        // Removed in: replaced by WirelessTorcherino.wirelessTorchRadius
+        if (config.hasKey("FlashTorcherino", "flashBindingRangeZ")) {
+            config.getCategory("FlashTorcherino")
+                .remove("flashBindingRangeZ");
+            changed = true;
+        }
+
+        if (changed) {
+            config.save();
         }
     }
 }

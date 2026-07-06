@@ -78,6 +78,19 @@ public enum Mixins {
         .addTargetMod(TargetMod.GregTech)
         .addCondition(enableFlashTorcherino)),
 
+    OmniOcular_FilterXML(MixinClass.newMixinClass("Filter_OmniOcular_Torcherino_XML")
+        .setClass("XMLConfigHandler_Mixin")
+        .setPackagePath(PackagePath.OmniOcular)
+        .setPhase(Phase.LATE)
+        .addTargetMod(TargetMod.OmniOcular)
+        .addCondition(true),
+        MixinClass.newMixinClass("Filter_OmniOcular_JSEngine_Torcherino")
+            .setClass("JSEngine_Mixin")
+            .setPackagePath(PackagePath.OmniOcular)
+            .setPhase(Phase.LATE)
+            .addTargetMod(TargetMod.OmniOcular)
+            .addCondition(true)),
+
     ;
 
     private final MixinClass[] MIXIN_CLASS;
@@ -120,7 +133,8 @@ public enum Mixins {
         TecTech,
         EnderIO,
         CropsNH,
-        ForestryMC;
+        ForestryMC,
+        OmniOcular;
 
         private final String path;
 

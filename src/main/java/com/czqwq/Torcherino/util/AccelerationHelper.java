@@ -12,13 +12,6 @@ import net.minecraft.world.World;
 import com.czqwq.Torcherino.Config;
 import com.czqwq.Torcherino.api.interfaces.ITileEntityTickAcceleration;
 import com.czqwq.Torcherino.api.interfaces.ITorcherinoTile;
-import com.czqwq.Torcherino.tile.TileCompressedTorcherino;
-import com.czqwq.Torcherino.tile.TileCompressedTorcherinoClassic;
-import com.czqwq.Torcherino.tile.TileDoubleCompressedTorcherino;
-import com.czqwq.Torcherino.tile.TileDoubleCompressedTorcherinoClassic;
-import com.czqwq.Torcherino.tile.TileTorcherinoAccelerated;
-import com.czqwq.Torcherino.tile.TileTorcherinoClassic;
-import com.czqwq.Torcherino.tile.TileWirelessTorcherinoBase;
 
 /**
  * Shared acceleration logic used by all Torcherino tile entities.
@@ -136,16 +129,11 @@ public final class AccelerationHelper {
 
     /**
      * Returns true if the given TileEntity is any type of Torcherino tile.
+     * Uses ITorcherinoTile interface — all torch tile types implement it.
      * Used to prevent torches from accelerating each other (infinite recursion).
      */
     public static boolean isTorcherinoTile(TileEntity tile) {
-        return tile instanceof ITorcherinoTile || tile instanceof TileTorcherinoAccelerated
-            || tile instanceof TileCompressedTorcherino
-            || tile instanceof TileDoubleCompressedTorcherino
-            || tile instanceof TileTorcherinoClassic
-            || tile instanceof TileCompressedTorcherinoClassic
-            || tile instanceof TileDoubleCompressedTorcherinoClassic
-            || tile instanceof TileWirelessTorcherinoBase;
+        return tile instanceof ITorcherinoTile;
     }
 
     /**
