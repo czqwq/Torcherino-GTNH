@@ -1,0 +1,59 @@
+{
+  "format_version": 1,
+  "size": [5, 3, 5],
+  "palette": {
+    "A": {"name": "Torcherino:compressed_torcherino", "meta": 0},
+    "B": {"name": "Torcherino:compressed_torcherino_classic", "meta": 0},
+    "C": {"name": "Torcherino:compressed_wireless_torcherino", "meta": 0},
+    "D": {"name": "Torcherino:double_compressed_torcherino", "meta": 0},
+    "E": {"name": "Torcherino:double_compressed_torcherino_classic", "meta": 0},
+    "F": {"name": "Torcherino:double_compressed_wireless_torcherino", "meta": 0},
+    "G": {"name": "Torcherino:torcherino", "meta": 0},
+    "H": {"name": "Torcherino:torcherino_classic", "meta": 0},
+    "I": {"name": "Torcherino:wireless_torcherino", "meta": 0},
+    "J": {"name": "gregtech:gt.blockcasings5", "meta": 0},
+    "K": {"name": "gregtech:gt.blockcasings", "meta": 11},
+    "L": {"name": "gregtech:gt.blockmachines", "meta": 2},
+    "M": {"name": "gregtech:gt.blockmachines", "meta": 3}
+  },
+  "layers": [
+    [
+      "...CB",
+      ".LMLH",
+      ".KKLD",
+      ".KKLA",
+      ".EIFG"
+    ],
+    [
+      ".....",
+      ".JJJ.",
+      ".J.J.",
+      ".JJJ.",
+      "....."
+    ],
+    [
+      ".....",
+      ".KKK.",
+      ".KMK.",
+      ".KKK.",
+      "....."
+    ]
+  ],
+  "annotations": {
+    "labels": {
+      "controller": [3, 0, 2],
+      "input_bus": [3, 0, 3],
+      "output_bus": [3, 0, 1],
+      "energy_hatch": [2, 0, 1],
+      "torcherino": [4, 0, 4],
+      "compressed_torcherino": [4, 0, 3],
+      "double_compressed_torcherino": [4, 0, 2],
+      "torcherino_classic": [4, 0, 1],
+      "compressed_torcherino_classic": [4, 0, 0],
+      "double_compressed_torcherino_classic": [1, 0, 4],
+      "wireless_torcherino": [2, 0, 4],
+      "compressed_wireless_torcherino": [3, 0, 0],
+      "double_compressed_wireless_torcherino": [3, 0, 4]
+    }
+  }
+}

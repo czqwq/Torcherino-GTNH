@@ -22,10 +22,6 @@ dependencies {
     implementation(gtnhDev("NotEnoughItems"))
     devOnlyNonPublishable("com.github.GTNewHorizons:Horizon-QA:0.7.0:dev")
 
-    // Horizon-QA test dependency — makes @GameTest, GameTestHelper etc.
-    // available to test sources under src/test/java.
-    testImplementation("com.github.GTNewHorizons:Horizon-QA:0.7.0:dev")
-
     runtimeOnlyNonPublishable('com.github.GTNewHorizons:worldedit-gtnh:v0.0.8:dev')
 
     // runtime
