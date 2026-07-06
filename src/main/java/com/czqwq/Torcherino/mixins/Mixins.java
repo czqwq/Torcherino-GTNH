@@ -2,6 +2,7 @@ package com.czqwq.Torcherino.mixins;
 
 import static com.czqwq.Torcherino.Config.enableAccelerateGregTechMachine;
 import static com.czqwq.Torcherino.Config.enableCropsNHAcceleration;
+import static com.czqwq.Torcherino.Config.enableFlashTorcherino;
 import static com.czqwq.Torcherino.Config.enableForestryAcceleration;
 
 import java.util.ArrayList;
@@ -70,6 +71,26 @@ public enum Mixins {
         .addTargetMod(TargetMod.ForestryMC)
         .addCondition(enableForestryAcceleration)),
 
+    GregTech_WirelessGTDataStick(MixinClass.newMixinClass("Add_GT_LeftClick_DataStick")
+        .setClass("GTMachineLeftClickDataStick_Mixin")
+        .setPackagePath(PackagePath.GregTech)
+        .setPhase(Phase.LATE)
+        .addTargetMod(TargetMod.GregTech)
+        .addCondition(enableFlashTorcherino)),
+
+    OmniOcular_FilterXML(MixinClass.newMixinClass("Filter_OmniOcular_Torcherino_XML")
+        .setClass("XMLConfigHandler_Mixin")
+        .setPackagePath(PackagePath.OmniOcular)
+        .setPhase(Phase.LATE)
+        .addTargetMod(TargetMod.OmniOcular)
+        .addCondition(true),
+        MixinClass.newMixinClass("Filter_OmniOcular_JSEngine_Torcherino")
+            .setClass("JSEngine_Mixin")
+            .setPackagePath(PackagePath.OmniOcular)
+            .setPhase(Phase.LATE)
+            .addTargetMod(TargetMod.OmniOcular)
+            .addCondition(true)),
+
     ;
 
     private final MixinClass[] MIXIN_CLASS;
@@ -112,7 +133,8 @@ public enum Mixins {
         TecTech,
         EnderIO,
         CropsNH,
-        ForestryMC;
+        ForestryMC,
+        OmniOcular;
 
         private final String path;
 

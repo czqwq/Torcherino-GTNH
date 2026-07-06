@@ -63,6 +63,5 @@ public class Torcherino {
     @Mod.EventHandler
     public void completeInit(FMLLoadCompleteEvent event) {
         GTRecipes.loadRecipes();
-        // load GT recipes here, after all mods have loaded and registered their items/blocks/fluids/etc.
     }
 }

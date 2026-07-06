@@ -46,3 +46,42 @@ gui.torcherino.speed=Speed:
 gui.torcherino.x_range=X Range:
 gui.torcherino.y_range=Y Range:
 gui.torcherino.z_range=Z Range:
+
+#Wireless Torcherino
+tile.wireless_torcherino.name=Torcherino (Wireless)
+tile.compressed_wireless_torcherino.name=Compressed Torcherino (Wireless)
+tile.double_compressed_wireless_torcherino.name=Double Compressed Torcherino (Wireless)
+
+torcherino.gui.wireless.title=Torcherino (Wireless)
+torcherino.gui.wireless_compressed.title=Compressed Torcherino (Wireless)
+torcherino.gui.wireless_double.title=Double Compressed Torcherino (Wireless)
+torcherino.gui.wireless.global_speed=Global Speed
+torcherino.gui.wireless.bound_machines=Bound Machines
+torcherino.gui.wireless.no_machines=No machines bound
+torcherino.gui.wireless.cycle_speed=Cycle Speed
+torcherino.gui.wireless.remove=Remove
+torcherino.tooltip.wireless.line1=§7Left-click machine with Data Stick: save coords
+torcherino.tooltip.wireless.line2=§7Right-click torch with Data Stick: bind machine
+torcherino.tooltip.wireless.line3=§7Right-click torch: open GUI
+torcherino.tooltip.wireless.range=§eRange: %dx%dx%d
+
+torcherino.wireless.datastick.name=Wireless Torcherino Link [%s]
+torcherino.wireless.datastick.machine_saved=Machine "%s" saved at (%d, %d, %d). Right-click torch to bind.
+torcherino.wireless.datastick.bound=Machine "%s" bound successfully!
+torcherino.wireless.datastick.out_of_range=Target is out of range of this torch!
+torcherino.wireless.datastick.no_machine=No machine found at this location!
+torcherino.wireless.datastick.machine_gone=The saved machine no longer exists! Data cleared.
+torcherino.wireless.datastick.wrong_dim=The saved machine is in a different dimension! Data cleared.
+torcherino.wireless.datastick.cannot_bind_self=Cannot bind a torch to itself!
+torcherino.wireless.datastick.bind_failed=Failed to bind machine (list may be full).
+
+torcherino.gui.wireless.global_label=Global
+torcherino.gui.wireless.use_global=Use global speed
+torcherino.gui.wireless.override_speed=Override speed
+torcherino.gui.wireless.select_machine=Select machine #
+
+torcherino.waila.wireless.global_speed=Global Speed
+torcherino.waila.wireless.bound_count=Bound Machines
+torcherino.waila.wireless.use_global=global
+torcherino.waila.wireless.no_bound=No machines bound
+torcherino.waila.wireless.shift_hint=Shift for details

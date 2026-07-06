@@ -6,6 +6,7 @@
   "compatibilityLevel": "JAVA_8",
   "package": "com.czqwq.Torcherino.mixins.early",
   "mixins": [
-    "GregTech.BaseMetaTileEntityAcceleration_Mixin"
+    "GregTech.BaseMetaTileEntityAcceleration_Mixin",
+    "GregTech.BlockLeftClickDataStick_Mixin"
   ]
 }
