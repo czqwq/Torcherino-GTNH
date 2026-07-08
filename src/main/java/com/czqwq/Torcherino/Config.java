@@ -85,8 +85,27 @@ public class Config {
      */
     public static int flashMaxBoundMachines = 64;
 
-    public static void synchronizeConfiguration(File configFile) {
-        Configuration configuration = new Configuration(configFile);
+    /**
+     * Load or create the main config file.
+     * <p>
+     * The file is placed under {@code config/Torcherino/Torcherino.cfg} so that
+     * all Torcherino configuration files live in a dedicated subdirectory
+     * alongside the separate {@code recipe.cfg}.
+     *
+     * @param configDir the {@code config/} directory provided by FML
+     */
+    public static void synchronizeConfiguration(File configDir) {
+        // Ensure config/Torcherino/ directory exists
+        File torcherinoDir = new File(configDir, "Torcherino");
+        if (!torcherinoDir.exists()) {
+            torcherinoDir.mkdirs();
+        }
+
+        // Load main config (name unchanged: Torcherino.cfg, but now in subdirectory)
+        Configuration configuration = new Configuration(new File(torcherinoDir, "Torcherino.cfg"));
+
+        // Load recipe config from the same subdirectory
+        RecipeConfig.synchronizeConfiguration(new File(torcherinoDir, "recipe.cfg"));
 
         // ---- Acceleration category ----
         enableAccelerateGregTechMachine = configuration.getBoolean(

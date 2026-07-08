@@ -13,7 +13,11 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 public class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
-        Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
+        // Pass the config/ directory so Config creates config/Torcherino/ subdirectory
+        // containing both Torcherino.cfg (main) and recipe.cfg (recipe toggles)
+        Config.synchronizeConfiguration(
+            event.getSuggestedConfigurationFile()
+                .getParentFile());
 
         ModBlocks.init();
         ModItems.init();
