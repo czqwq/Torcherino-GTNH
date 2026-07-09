@@ -17,7 +17,7 @@ body:
     attributes:
       label: Mod Version
       description: What version of the mod are you using? Give an actual version number or jar name, not "latest". Speaking of which, if you are not on the latest jar, try updating first.
-      placeholder: "1.9.0-bugfix2, and/or ScienceNotLeisure-v0.1.9-bugfix-2-master.195+66be9ee1e9-dirty.jar"
+      placeholder: "example: 2.0"
     validations:
       required: true
   - type: textarea
