@@ -1,7 +1,7 @@
 name: Report Bug
 description: "Report a crash, mod conflict, or any other type of bug."
 labels:
-  - "Awaiting triage"
+  - "bug"
 assignees: czqwq
 body:
   - type: input
