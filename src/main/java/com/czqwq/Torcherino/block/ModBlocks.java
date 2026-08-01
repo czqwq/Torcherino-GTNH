@@ -4,9 +4,12 @@ import net.minecraft.block.Block;
 
 import com.czqwq.Torcherino.Config;
 import com.czqwq.Torcherino.item.ItemBlockWirelessTorcherino;
+import com.czqwq.Torcherino.tile.TileCompressedDecelerateTorcherino;
 import com.czqwq.Torcherino.tile.TileCompressedTorcherino;
 import com.czqwq.Torcherino.tile.TileCompressedTorcherinoClassic;
 import com.czqwq.Torcherino.tile.TileCompressedWirelessTorcherino;
+import com.czqwq.Torcherino.tile.TileDecelerateTorcherino;
+import com.czqwq.Torcherino.tile.TileDoubleCompressedDecelerateTorcherino;
 import com.czqwq.Torcherino.tile.TileDoubleCompressedTorcherino;
 import com.czqwq.Torcherino.tile.TileDoubleCompressedTorcherinoClassic;
 import com.czqwq.Torcherino.tile.TileDoubleCompressedWirelessTorcherino;
@@ -21,6 +24,9 @@ public class ModBlocks {
     public static Block torcherino;
     public static Block compressedTorcherino;
     public static Block doubleCompressedTorcherino;
+    public static Block decelerateTorcherino;
+    public static Block compressedDecelerateTorcherino;
+    public static Block doubleCompressedDecelerateTorcherino;
     public static Block torcherinoClassic;
     public static Block compressedTorcherinoClassic;
     public static Block doubleCompressedTorcherinoClassic;
@@ -32,6 +38,25 @@ public class ModBlocks {
         torcherino = new BlockTorcherino().setBlockName("torcherino");
         compressedTorcherino = new BlockCompressedTorcherino().setBlockName("compressed_torcherino");
         doubleCompressedTorcherino = new BlockDoubleCompressedTorcherino().setBlockName("double_compressed_torcherino");
+        // Decelerate torcherino blocks & tiles
+        if (Config.enableDecelerateTorcherino) {
+            decelerateTorcherino = new BlockDecelerateTorcherino().setBlockName("decelerate_torcherino");
+            compressedDecelerateTorcherino = new BlockCompressedDecelerateTorcherino()
+                .setBlockName("compressed_decelerate_torcherino");
+            doubleCompressedDecelerateTorcherino = new BlockDoubleCompressedDecelerateTorcherino()
+                .setBlockName("double_compressed_decelerate_torcherino");
+
+            GameRegistry.registerBlock(decelerateTorcherino, "decelerate_torcherino");
+            GameRegistry.registerBlock(compressedDecelerateTorcherino, "compressed_decelerate_torcherino");
+            GameRegistry.registerBlock(doubleCompressedDecelerateTorcherino, "double_compressed_decelerate_torcherino");
+
+            GameRegistry.registerTileEntity(TileDecelerateTorcherino.class, "tile_decelerate_torcherino");
+            GameRegistry
+                .registerTileEntity(TileCompressedDecelerateTorcherino.class, "tile_compressed_decelerate_torcherino");
+            GameRegistry.registerTileEntity(
+                TileDoubleCompressedDecelerateTorcherino.class,
+                "tile_double_compressed_decelerate_torcherino");
+        }
         torcherinoClassic = new BlockTorcherinoClassic().setBlockName("torcherino_classic");
         compressedTorcherinoClassic = new BlockCompressedTorcherinoClassic()
             .setBlockName("compressed_torcherino_classic");

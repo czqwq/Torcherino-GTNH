@@ -1,6 +1,9 @@
 tile.torcherino.name=加速火把
 tile.compressed_torcherino.name=压缩加速火把
 tile.double_compressed_torcherino.name=双重压缩加速火把
+tile.decelerate_torcherino.name=减速火把
+tile.compressed_decelerate_torcherino.name=压缩减速火把
+tile.double_compressed_decelerate_torcherino.name=双重压缩减速火把
 tile.torcherino_classic.name=加速火把(传统)
 tile.compressed_torcherino_classic.name=压缩加速火把(传统)
 tile.double_compressed_torcherino_classic.name=双重压缩加速火把(传统)
@@ -34,6 +37,7 @@ torcherino.change_mode_speed=已更改速度模式为
 torcherino.stopped=已停止
 
 torcherino.gui.title=加速火把
+torcherino.gui.decelerate.title=减速火把
 torcherino.gui.speed=速度
 torcherino.gui.x_range=X范围
 torcherino.gui.y_range=Y范围

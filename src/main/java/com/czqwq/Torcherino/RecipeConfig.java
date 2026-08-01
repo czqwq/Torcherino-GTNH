@@ -11,7 +11,7 @@ import net.minecraftforge.common.config.Configuration;
  * booleans before registering. This allows pack makers to disable specific recipe
  * groups without touching code.
  * <p>
- * Torch recipes are grouped by <b>type</b> (accelerated, classic, wireless) and
+ * Torch recipes are grouped by <b>type</b> (accelerated, classic, decelerate, wireless) and
  * <b>tier</b> (compressed, double-compressed). When a tier switch is disabled, only
  * the basic torch of that type is craftable; the compressed upgrade chain is removed.
  */
@@ -26,14 +26,15 @@ public final class RecipeConfig {
     public static boolean classicTorcherino = true;
 
     /**
-     * Compressed tier recipes (9× basic → 1× compressed) for accelerated and classic.
-     * When disabled, the 3×3 upgrade path is removed.
+     * Compressed tier recipes (9× basic → 1× compressed) for accelerated, classic
+     * and decelerate torches. When disabled, the 3×3 upgrade path is removed.
      */
     public static boolean compressedTorcherino = true;
 
     /**
      * Double-compressed tier recipes (9× compressed → 1× double-compressed) for
-     * accelerated and classic. When disabled, the final tier upgrade path is removed.
+     * accelerated, classic and decelerate torches. When disabled, the final tier
+     * upgrade path is removed.
      */
     public static boolean doubleCompressedTorcherino = true;
 
@@ -96,13 +97,13 @@ public final class RecipeConfig {
             "compressedTorcherino",
             "Vanilla",
             compressedTorcherino,
-            "9× basic torch → 1× compressed torch recipes (accelerated and classic).");
+            "9× basic torch → 1× compressed torch recipes (accelerated, classic and decelerate).");
 
         doubleCompressedTorcherino = cfg.getBoolean(
             "doubleCompressedTorcherino",
             "Vanilla",
             doubleCompressedTorcherino,
-            "9× compressed torch → 1× double-compressed torch recipes (accelerated and classic).");
+            "9× compressed torch → 1× double-compressed torch recipes (accelerated, classic and decelerate).");
 
         // ---- Vanilla items ----
         timeTwister = cfg.getBoolean("timeTwister", "Vanilla", timeTwister, "Imperfect time twister recipe.");

@@ -129,6 +129,33 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
     protected abstract String getGuiTitleKey();
 
     /**
+     * Applies this torch's effect over its full configured area once per tick.
+     * <p>
+     * The default implementation accelerates every position in range.
+     * Subclasses that decelerate override this to register deceleration zones instead.
+     *
+     * @param effectiveSpeed the effective speed (slider level × tier multiplier)
+     */
+    protected void applyAreaEffect(int effectiveSpeed) {
+        // Accelerate all positions in range
+        for (int x = xMin; x <= xMax; ++x) {
+            for (int y = yMin; y <= yMax; ++y) {
+                for (int z = zMin; z <= zMax; ++z) {
+                    AccelerationHelper.accelerateAtPosition(
+                        this.worldObj,
+                        this.xCoord,
+                        this.yCoord,
+                        this.zCoord,
+                        effectiveSpeed,
+                        x,
+                        y,
+                        z);
+                }
+            }
+        }
+    }
+
+    /**
      * @return the GUI panel ID (unique per torch type).
      */
     protected abstract String getGuiPanelId();
@@ -378,22 +405,7 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
             updateCachedBounds();
         }
 
-        // Accelerate all positions in range
-        for (int x = xMin; x <= xMax; ++x) {
-            for (int y = yMin; y <= yMax; ++y) {
-                for (int z = zMin; z <= zMax; ++z) {
-                    AccelerationHelper.accelerateAtPosition(
-                        this.worldObj,
-                        this.xCoord,
-                        this.yCoord,
-                        this.zCoord,
-                        effectiveSpeed,
-                        x,
-                        y,
-                        z);
-                }
-            }
-        }
+        applyAreaEffect(effectiveSpeed);
     }
 
     private void updateCachedBounds() {

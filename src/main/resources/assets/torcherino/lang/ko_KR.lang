@@ -1,6 +1,9 @@
 tile.torcherino.name=토쳐리노
 tile.compressed_torcherino.name=압축된 토쳐리노
 tile.double_compressed_torcherino.name=이중 압축 토쳐리노
+tile.decelerate_torcherino.name=감속 토쳐리노
+tile.compressed_decelerate_torcherino.name=압축된 감속 토쳐리노
+tile.double_compressed_decelerate_torcherino.name=이중 압축 감속 토쳐리노
 tile.torcherino_classic.name=토쳐리노 (클래식)
 tile.compressed_torcherino_classic.name=압축된 토쳐리노 (클래식)
 tile.double_compressed_torcherino_classic.name=이중 압축 토쳐리노 (클래식)
@@ -34,6 +37,7 @@ torcherino.change_mode_speed=속도 설정:
 torcherino.stopped=토쳐리노 정지됨
 
 torcherino.gui.title=토쳐리노
+torcherino.gui.decelerate.title=감속 토쳐리노
 torcherino.gui.speed=속도
 torcherino.gui.x_range=X 범위
 torcherino.gui.y_range=Y 범위

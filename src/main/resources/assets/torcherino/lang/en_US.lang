@@ -1,6 +1,9 @@
 tile.torcherino.name=Torcherino
 tile.compressed_torcherino.name=Compressed Torcherino
 tile.double_compressed_torcherino.name=Double Compressed Torcherino
+tile.decelerate_torcherino.name=Decelerate Torcherino
+tile.compressed_decelerate_torcherino.name=Compressed Decelerate Torcherino
+tile.double_compressed_decelerate_torcherino.name=Double Compressed Decelerate Torcherino
 tile.torcherino_classic.name=Torcherino (Classic)
 tile.compressed_torcherino_classic.name=Compressed Torcherino (Classic)
 tile.double_compressed_torcherino_classic.name=Double Compressed Torcherino (Classic)
@@ -36,6 +39,7 @@ torcherino.stopped=Stopped
 
 #GUI
 torcherino.gui.title=Torcherino
+torcherino.gui.decelerate.title=Decelerate Torcherino
 torcherino.gui.speed=Speed
 torcherino.gui.x_range=X Range
 torcherino.gui.y_range=Y Range

@@ -1,6 +1,9 @@
 tile.torcherino.name=Torcherino
 tile.compressed_torcherino.name=Torcherino Comprimé
 tile.double_compressed_torcherino.name=Torcherino Double Comprimé
+tile.decelerate_torcherino.name=Torcherino Ralentisseur
+tile.compressed_decelerate_torcherino.name=Torcherino Ralentisseur Comprimé
+tile.double_compressed_decelerate_torcherino.name=Torcherino Ralentisseur Double Comprimé
 tile.torcherino_classic.name=Torcherino (Classique)
 tile.compressed_torcherino_classic.name=Torcherino Comprimé (Classique)
 tile.double_compressed_torcherino_classic.name=Torcherino Double Comprimé (Classique)
@@ -34,6 +37,7 @@ torcherino.change_mode_speed=Vitesse définie sur:
 torcherino.stopped=Torcherino arrêté
 
 torcherino.gui.title=Torcherino
+torcherino.gui.decelerate.title=Torcherino Ralentisseur
 torcherino.gui.speed=Vitesse
 torcherino.gui.x_range=Portée X
 torcherino.gui.y_range=Portée Y

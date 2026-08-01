@@ -4,6 +4,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
+import com.czqwq.Torcherino.Config;
 import com.czqwq.Torcherino.RecipeConfig;
 import com.czqwq.Torcherino.block.ModBlocks;
 import com.czqwq.Torcherino.item.ModItems;
@@ -26,7 +27,22 @@ public class ModRecipes {
                 Items.clock);
         }
 
-        // ========== Compressed Torcherino (9× → 1×, accelerated + classic) ==========
+        // ========== Decelerate Torcherino ==========
+        if (Config.enableDecelerateTorcherino) {
+            GameRegistry.addShapedRecipe(
+                new ItemStack(ModBlocks.decelerateTorcherino),
+                "xyx",
+                "yzy",
+                "xyx",
+                'x',
+                new ItemStack(Items.dye, 1, 6), // cyan dye
+                'y',
+                Items.diamond,
+                'z',
+                ModBlocks.torcherino);
+        }
+
+        // ========== Compressed Torcherino (9× → 1×, accelerated + classic + decelerate) ==========
         if (RecipeConfig.compressedTorcherino) {
             GameRegistry.addShapedRecipe(
                 new ItemStack(ModBlocks.compressedTorcherino),
@@ -43,6 +59,27 @@ public class ModRecipes {
                 "TTT",
                 'T',
                 ModBlocks.torcherinoClassic);
+        }
+
+        // ========== Decelerate compressed tiers (9× → 1×, follow the shared tier switches) ==========
+        if (Config.enableDecelerateTorcherino && RecipeConfig.compressedTorcherino) {
+            GameRegistry.addShapedRecipe(
+                new ItemStack(ModBlocks.compressedDecelerateTorcherino),
+                "TTT",
+                "TTT",
+                "TTT",
+                'T',
+                ModBlocks.decelerateTorcherino);
+        }
+
+        if (Config.enableDecelerateTorcherino && RecipeConfig.doubleCompressedTorcherino) {
+            GameRegistry.addShapedRecipe(
+                new ItemStack(ModBlocks.doubleCompressedDecelerateTorcherino),
+                "TTT",
+                "TTT",
+                "TTT",
+                'T',
+                ModBlocks.compressedDecelerateTorcherino);
         }
 
         // ========== Double-Compressed Torcherino (9× compressed → 1×, accelerated + classic) ==========

@@ -74,6 +74,13 @@ public class Config {
      */
     public static boolean enableForestryAcceleration = true;
 
+    // ========== Decelerate Torcherino ==========
+    /**
+     * Enable/disable the decelerate torcherino feature entirely
+     * (blocks, tile entities and recipes).
+     */
+    public static boolean enableDecelerateTorcherino = true;
+
     // ========== Flash-bound Torcherino settings ==========
     /**
      * Enable/disable the flash-bound torcherino feature entirely.
@@ -215,6 +222,14 @@ public class Config {
             "Compatibility",
             enableForestryAcceleration,
             "Enable ForestryMC alveary acceleration support via mixins.");
+
+        // ---- Decelerate Torcherino ----
+        enableDecelerateTorcherino = configuration.getBoolean(
+            "enableDecelerateTorcherino",
+            "DecelerateTorcherino",
+            enableDecelerateTorcherino,
+            "Master switch to enable/disable the Decelerate Torcherino feature "
+                + "(blocks, tile entities and recipes).");
 
         // ---- Flash Torcherino ----
         enableFlashTorcherino = configuration.getBoolean(
