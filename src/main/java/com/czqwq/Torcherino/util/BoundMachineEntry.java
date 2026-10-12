@@ -20,6 +20,17 @@ public class BoundMachineEntry {
     public final int x, y, z, dim;
     public int perMachineSpeed;
 
+    /**
+     * Cached resolved display name (see {@link #getCachedName(World)}).
+     * <p>
+     * Resolving a name costs a {@code world.getTileEntity} plus, for GT machines, a
+     * {@code getMetaTileEntity().getLocalName()} and up to two {@code StatCollector} lookups.
+     * The GUI sync getter is polled once per server tick and WAILA every 250 ms, both per bound
+     * machine, so resolving on each of those reads is pure waste: the name only changes when the
+     * machine behind the coordinates changes, which the 100-tick validation sweep covers.
+     */
+    private String displayName;
+
     public BoundMachineEntry(int x, int y, int z, int dim, int perMachineSpeed) {
         this.x = x;
         this.y = y;
@@ -30,6 +41,38 @@ public class BoundMachineEntry {
 
     public BoundMachineEntry(int x, int y, int z, int dim) {
         this(x, y, z, dim, 0);
+    }
+
+    /**
+     * Cached variant of {@link #getLocalizedName(World)}: resolves once and reuses the result.
+     * Use this from anything that runs repeatedly (GUI sync getters, WAILA); call
+     * {@link #refreshDisplayName(World)} from a periodic sweep to pick up machine changes.
+     *
+     * @param world world to resolve against on the first call
+     * @return the display name, never null
+     */
+    public String getCachedName(World world) {
+        String cached = this.displayName;
+        if (cached != null) {
+            return cached;
+        }
+        String resolved = getLocalizedName(world);
+        this.displayName = resolved;
+        return resolved;
+    }
+
+    /**
+     * Re-resolves {@link #displayName}, but only while the entry's chunk is loaded.
+     * <p>
+     * On the client, and for machines in unloaded chunks, {@link #getLocalizedName(World)}
+     * returns the {@code "???"} placeholder — writing that over a previously good name would
+     * be a visible regression, so an unloaded position keeps its last known name instead.
+     */
+    public void refreshDisplayName(World world) {
+        if (world == null || world.provider.dimensionId != this.dim || !world.blockExists(x, y, z)) {
+            return;
+        }
+        this.displayName = getLocalizedName(world);
     }
 
     // ========== Localized name ==========

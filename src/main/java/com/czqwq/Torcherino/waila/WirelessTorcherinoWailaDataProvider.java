@@ -126,7 +126,7 @@ public class WirelessTorcherinoWailaDataProvider implements IWailaDataProvider {
         NBTTagList entries = new NBTTagList();
         for (BoundMachineEntry entry : boundMachines) {
             NBTTagCompound entryTag = new NBTTagCompound();
-            entryTag.setString("name", entry.getLocalizedName(world));
+            entryTag.setString("name", entry.getCachedName(world));
             entryTag.setInteger("x", entry.x);
             entryTag.setInteger("y", entry.y);
             entryTag.setInteger("z", entry.z);

@@ -1,5 +1,7 @@
 package com.czqwq.Torcherino.mixins.early.GregTech;
 
+import net.minecraft.tileentity.TileEntity;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Shadow;
@@ -43,6 +45,17 @@ public abstract class BaseMetaTileEntityDeceleration_Mixin implements ITileEntit
     /** Progress captured at the start of the current tick. */
     private int torcherino$prevProgress;
 
+    /**
+     * HEAD's answer to "is this a held-back tick", cached for TAIL.
+     * <p>
+     * {@code shouldHoldBackProgress} is not free once any decelerate torch exists: it takes the
+     * zone monitor, hashes the position and reads the world tick. It is also evaluated for
+     * <i>every</i> GT machine every tick (this inject runs before GT's own early returns), while
+     * only a handful of machines are ever inside a zone — so it is called once per machine per
+     * tick here instead of twice, and never at all while no decelerate torch is placed.
+     */
+    private boolean torcherino$holdBack;
+
     @Shadow(remap = false)
     public abstract int getProgress();
 
@@ -54,8 +67,12 @@ public abstract class BaseMetaTileEntityDeceleration_Mixin implements ITileEntit
 
     @Inject(method = "updateEntityProfiled", at = @At("HEAD"), remap = false)
     private void torcherino$decelHead(CallbackInfo ci) {
+        // Gate first: this runs for every GT machine in the world on every tick, so the
+        // (megamorphic) getProgress() chain below must not be paid when deceleration is idle.
+        this.torcherino$holdBack = DecelerationHelper.shouldHoldBackProgress((TileEntity) (Object) this);
+        if (!this.torcherino$holdBack) return;
+
         this.torcherino$prevProgress = this.getProgress();
-        if (!DecelerationHelper.shouldHoldBackProgress((net.minecraft.tileentity.TileEntity) (Object) this)) return;
         int maxProgress = this.getMaxProgress();
         if (maxProgress >= 2 && this.torcherino$prevProgress >= maxProgress - 1) {
             // About to complete a recipe on a held-back tick — park one step so the
@@ -66,7 +83,9 @@ public abstract class BaseMetaTileEntityDeceleration_Mixin implements ITileEntit
 
     @Inject(method = "updateEntityProfiled", at = @At("TAIL"), remap = false)
     private void torcherino$decelTail(CallbackInfo ci) {
-        if (!DecelerationHelper.shouldHoldBackProgress((net.minecraft.tileentity.TileEntity) (Object) this)) return;
+        // Reuse HEAD's answer: world time cannot change between HEAD and TAIL of one TE tick,
+        // so the two lookups could only ever disagree by wasting a second map lookup.
+        if (!this.torcherino$holdBack) return;
         // The machine already ran this tick with full energy side effects;
         // only the progress bar is held back.
         torcherino$setProgressRaw(this.torcherino$prevProgress);

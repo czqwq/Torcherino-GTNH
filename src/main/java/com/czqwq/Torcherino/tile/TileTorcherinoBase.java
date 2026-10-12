@@ -2,16 +2,8 @@ package com.czqwq.Torcherino.tile;
 
 import static net.minecraft.util.StatCollector.translateToLocal;
 
-import java.lang.ref.WeakReference;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 
 import com.cleanroommc.modularui.api.IGuiHolder;
 import com.cleanroommc.modularui.api.drawable.IKey;
@@ -36,11 +28,6 @@ import com.czqwq.Torcherino.util.AccelerationHelper;
  * Subclasses only need to provide {@link #getSpeedMultiplier()} and {@link #getGuiTitleKey()}.
  */
 public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolder<PosGuiData>, ITorcherinoTile {
-
-    // ========== World tracking (shared across all torch types) ==========
-    private static final Map<World, Set<WeakReference<TileTorcherinoBase>>> torchesByWorld = new WeakHashMap<>();
-
-    private static long globalCurrentTick = 0;
 
     // ========== Instance fields ==========
     /** Speed slider level (0 to maxSpeedLevel). Effective speed = speedLevel * getSpeedMultiplier(). */
@@ -137,10 +124,22 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
      * @param effectiveSpeed the effective speed (slider level × tier multiplier)
      */
     protected void applyAreaEffect(int effectiveSpeed) {
+        // Time budget for this whole torch tick (NOT per position — see AccelerationHelper).
+        // Created lazily: an area whose first positions are all air must not even read the clock.
+        long tickDeadline = AccelerationHelper.NO_DEADLINE;
+        boolean deadlineArmed = false;
+
         // Accelerate all positions in range
         for (int x = xMin; x <= xMax; ++x) {
             for (int y = yMin; y <= yMax; ++y) {
                 for (int z = zMin; z <= zMax; ++z) {
+                    if (!deadlineArmed) {
+                        tickDeadline = AccelerationHelper.newTickDeadline();
+                        deadlineArmed = true;
+                    } else if (System.nanoTime() > tickDeadline) {
+                        // Budget spent — stop walking the area instead of starting futile work.
+                        return;
+                    }
                     AccelerationHelper.accelerateAtPosition(
                         this.worldObj,
                         this.xCoord,
@@ -149,7 +148,8 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
                         effectiveSpeed,
                         x,
                         y,
-                        z);
+                        z,
+                        tickDeadline);
                 }
             }
         }
@@ -379,20 +379,12 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
 
     @Override
     public void updateEntity() {
-        // Register in world tracking
-        addToWorldSet();
-
-        // Update global tick counter and cleanup stale references
-        if (globalCurrentTick != this.worldObj.getTotalWorldTime()) {
-            globalCurrentTick = this.worldObj.getTotalWorldTime();
-            cleanupInvalidReferences();
-        }
-
         // Prevent recursion: only process once per tick
-        if (this.lastTickProcessed == globalCurrentTick) {
+        final long currentTick = this.worldObj.getTotalWorldTime();
+        if (this.lastTickProcessed == currentTick) {
             return;
         }
-        this.lastTickProcessed = globalCurrentTick;
+        this.lastTickProcessed = currentTick;
 
         // Early exit checks
         if (this.worldObj.isRemote || !this.is_active || isStopped || speedLevel == 0) return;
@@ -418,86 +410,5 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
         cachedXRadius = (byte) xRadius;
         cachedYRadius = (byte) yRadius;
         cachedZRadius = (byte) zRadius;
-    }
-
-    // ========== World set tracking ==========
-
-    @Override
-    public void invalidate() {
-        removeFromWorldSet();
-        super.invalidate();
-    }
-
-    @Override
-    public void onChunkUnload() {
-        removeFromWorldSet();
-        super.onChunkUnload();
-    }
-
-    private void addToWorldSet() {
-        if (this.worldObj == null) return;
-        synchronized (torchesByWorld) {
-            Set<WeakReference<TileTorcherinoBase>> torches = torchesByWorld
-                .computeIfAbsent(this.worldObj, k -> new HashSet<>());
-            boolean exists = false;
-            for (WeakReference<TileTorcherinoBase> ref : torches) {
-                if (ref.get() == this) {
-                    exists = true;
-                    break;
-                }
-            }
-            if (!exists) {
-                torches.add(new WeakReference<>(this));
-            }
-        }
-    }
-
-    private void removeFromWorldSet() {
-        if (this.worldObj == null) return;
-        synchronized (torchesByWorld) {
-            Set<WeakReference<TileTorcherinoBase>> torches = torchesByWorld.get(this.worldObj);
-            if (torches != null) {
-                torches.removeIf(ref -> ref.get() == this || ref.get() == null);
-            }
-        }
-    }
-
-    private void cleanupInvalidReferences() {
-        if (this.worldObj == null) return;
-        synchronized (torchesByWorld) {
-            Set<WeakReference<TileTorcherinoBase>> torches = torchesByWorld.get(this.worldObj);
-            if (torches != null) {
-                torches.removeIf(ref -> ref.get() == null);
-            }
-        }
-    }
-
-    /**
-     * Get all active GUI-type torches in the given world.
-     */
-    public static Set<TileTorcherinoBase> getTorchesInWorld(World world) {
-        Set<TileTorcherinoBase> result = new HashSet<>();
-        synchronized (torchesByWorld) {
-            Set<WeakReference<TileTorcherinoBase>> torches = torchesByWorld.get(world);
-            if (torches != null) {
-                for (Iterator<WeakReference<TileTorcherinoBase>> it = torches.iterator(); it.hasNext();) {
-                    TileTorcherinoBase torch = it.next()
-                        .get();
-                    if (torch != null) {
-                        result.add(torch);
-                    } else {
-                        it.remove();
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Get the current global tick. Used by AccelerationHelper for overlap detection.
-     */
-    public static long getGlobalTick() {
-        return globalCurrentTick;
     }
 }
