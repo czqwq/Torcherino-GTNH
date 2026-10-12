@@ -163,7 +163,10 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
         // Cap at max
         if (boundMachines.size() >= Config.flashMaxBoundMachines) return false;
 
-        boundMachines.add(new BoundMachineEntry(x, y, z, dim));
+        BoundMachineEntry entry = new BoundMachineEntry(x, y, z, dim);
+        // Resolve the display name once, up front, so the recurring GUI/WAILA reads are free.
+        entry.refreshDisplayName(this.worldObj);
+        boundMachines.add(entry);
         this.markDirty();
         return true;
     }
@@ -227,7 +230,11 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
             if (te == null || te.isInvalid()) {
                 it.remove();
                 this.markDirty();
+                continue;
             }
+            // Still bound: this is also the periodic refresh point for the cached display name,
+            // so a machine swapped at the same coordinates is picked up within one sweep.
+            entry.refreshDisplayName(this.worldObj);
         }
     }
 
@@ -261,7 +268,9 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
             for (int i = 0; i < boundMachines.size(); i++) {
                 BoundMachineEntry bm = boundMachines.get(i);
                 if (i > 0) sb.append(";");
-                String name = bm.getLocalizedName(this.worldObj);
+                // getCachedName: this getter is polled once per server tick while the panel is
+                // open, so resolving the name here (TE lookup + i18n) would repeat permanently.
+                String name = bm.getCachedName(this.worldObj);
                 sb.append(name)
                     .append("|")
                     .append(bm.x)
@@ -302,6 +311,21 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
                 }
             }).allowC2S();
 
+        // ---- Bound-list parse cache ----
+        // The widgets below read the bound list through DynamicKey suppliers, and ModularUI2
+        // evaluates those suppliers on EVERY frame (TextWidget.draw -> checkString ->
+        // IKey.getFormatted) — the widget's lastText field only avoids the re-layout, not the
+        // supplier call. Splitting the raw string there meant several String.split calls per
+        // frame (each allocating a fresh Pattern, even for a single-character separator) plus a
+        // parse per entry. Parse once per change instead; the change listener below already
+        // fires exactly when the string changes.
+        final List<ParsedEntry> parsedBoundList = new ArrayList<>();
+        final Runnable reparseBoundList = () -> {
+            parsedBoundList.clear();
+            parsedBoundList.addAll(parseAllEntries(boundListString.getValue()));
+        };
+        reparseBoundList.run(); // seed from the current (possibly already synced) value
+
         // Selected machine index (C2S: persisted in TE field)
         IntSyncValue selectedIdx = new IntSyncValue(() -> clampIdx(selectedMachineIndex), v -> {
             selectedMachineIndex = v;
@@ -310,9 +334,9 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
 
         // Per-machine speed (C2S: slider directly updates the selected bound machine on server)
         DoubleSyncValue perMachineSpeed = new DoubleSyncValue(
-            // Client getter: parse from synced boundListString
+            // Client getter: read from the parsed cache
             () -> {
-                ParsedEntry e = ParsedEntry.tryParse(boundListString.getValue(), selectedIdx.getIntValue());
+                ParsedEntry e = entryAt(parsedBoundList, selectedIdx.getIntValue());
                 return e != null ? (double) e.speed : 0.0;
             },
             v -> {}, // client setter: NO-OP — value set by slider sync; must be non-null
@@ -388,29 +412,29 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
 
         // Inner text widget (all entries, no truncation — scrollbar handles overflow)
         TextWidget<?> innerListText = new TextWidget<>(new DynamicKey(() -> {
-            String s = boundListString.getValue();
-            if (s == null || s.isEmpty()) {
+            if (parsedBoundList.isEmpty()) {
                 return IKey.str(translateToLocal("torcherino.gui.wireless.no_machines"));
             }
-            String[] entries = s.split(";");
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < entries.length; i++) {
-                String[] p = entries[i].split("\\|", 6);
-                if (p.length < 6) continue;
-                int spd = Integer.parseInt(p[5]);
+            boolean first = true;
+            for (int i = 0; i < parsedBoundList.size(); i++) {
+                ParsedEntry e = parsedBoundList.get(i);
+                if (e == null) continue; // malformed entry: holds its slot, renders nothing
+                int spd = e.speed;
                 int eff = spd > 0 ? spd : (int) globalSpeedValue.getDoubleValue();
                 String pct = eff == 0 ? "0%" : (eff * multiplier * 100) + "%";
-                if (i > 0) sb.append("\n");
+                if (!first) sb.append("\n");
+                first = false;
                 sb.append("[")
                     .append(i + 1)
                     .append("] ")
-                    .append(p[0])
+                    .append(e.name)
                     .append(" (")
-                    .append(p[1])
+                    .append(e.x)
                     .append(",")
-                    .append(p[2])
+                    .append(e.y)
                     .append(",")
-                    .append(p[3])
+                    .append(e.z)
                     .append(") [")
                     .append(pct)
                     .append("]");
@@ -425,9 +449,9 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
 
         // Dynamically adjust inner text height and scroll size when bound list changes
         boundListString.setChangeListener(() -> {
-            String s = boundListString.getValue();
-            int lineCount = (s == null || s.isEmpty()) ? 1 : Math.max(1, s.split(";").length);
-            int textHeight = lineCount * 10; // ~10px per text line
+            reparseBoundList.run();
+            final int lineCount = Math.max(1, countParsed(parsedBoundList));
+            final int textHeight = lineCount * 10; // ~10px per text line
             innerListText.height(textHeight);
             if (listScroll.getScrollArea()
                 .getScrollY() != null) {
@@ -443,7 +467,7 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
 
         // Machine selector button ([N] name, truncated to fit)
         panel.child(new ButtonWidget<>().child(new TextWidget<>(new DynamicKey(() -> {
-            ParsedEntry e = ParsedEntry.tryParse(boundListString.getValue(), selectedIdx.getIntValue());
+            ParsedEntry e = entryAt(parsedBoundList, selectedIdx.getIntValue());
             if (e == null) return IKey.str("");
             String prefix = "[" + (selectedIdx.getIntValue() + 1) + "] ";
             String label = prefix + e.name;
@@ -454,11 +478,10 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
             return IKey.str(label);
         })))
             .onMousePressed(a -> {
-                String s = boundListString.getValue();
-                if (s == null || s.isEmpty()) return false;
-                String[] entries = s.split(";");
-                int idx = clampIdx(selectedIdx.getIntValue(), entries.length);
-                selectedIdx.setIntValue((idx + 1) % entries.length, true, true);
+                int size = parsedBoundList.size();
+                if (size == 0) return false;
+                int idx = clampIdx(selectedIdx.getIntValue(), size);
+                selectedIdx.setIntValue((idx + 1) % size, true, true);
                 return true;
             })
             .left(8)
@@ -487,7 +510,7 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
         panel.child(
             new ButtonWidget<>().child(new TextWidget<>(translateToLocal("torcherino.gui.wireless.remove")))
                 .onMousePressed(a -> {
-                    ParsedEntry e = ParsedEntry.tryParse(boundListString.getValue(), selectedIdx.getIntValue());
+                    ParsedEntry e = entryAt(parsedBoundList, selectedIdx.getIntValue());
                     if (e == null) return false;
                     commandSync.setStringValue("remove:" + e.x + "," + e.y + "," + e.z + "," + e.dim, true, true);
                     return true;
@@ -513,6 +536,51 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
     }
 
     /**
+     * Parse the whole bound-list string once, in raw-entry order.
+     * <p>
+     * Malformed entries are kept as {@code null} placeholders rather than skipped, so that the
+     * index of every surviving entry still matches its index in the raw string — the selector
+     * button, the per-machine slider and the remove button all address machines by that index,
+     * and a dropped entry would silently shift them onto the wrong machine.
+     */
+    private static List<ParsedEntry> parseAllEntries(String boundListStr) {
+        List<ParsedEntry> result = new ArrayList<>();
+        if (boundListStr == null || boundListStr.isEmpty()) return result;
+        for (String entry : boundListStr.split(";")) {
+            String[] parts = entry.split("\\|", 6);
+            if (parts.length < 6) {
+                result.add(null);
+                continue;
+            }
+            try {
+                result.add(new ParsedEntry(parts));
+            } catch (NumberFormatException ignored) {
+                result.add(null);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Index into the parsed entry list, applying the same clamping the raw-string lookups used
+     * (an out-of-range index yields the last entry, an empty list yields null). Malformed
+     * entries are null and therefore yield null, exactly as {@code tryParse} did.
+     */
+    private static ParsedEntry entryAt(List<ParsedEntry> entries, int idx) {
+        if (entries.isEmpty()) return null;
+        return entries.get(clampIdx(idx, entries.size()));
+    }
+
+    /** Number of entries that parsed successfully (the number of lines the GUI renders). */
+    private static int countParsed(List<ParsedEntry> entries) {
+        int n = 0;
+        for (ParsedEntry e : entries) {
+            if (e != null) n++;
+        }
+        return n;
+    }
+
+    /**
      * Parsed fields from one entry in the boundListString.
      * Decouples widget handlers from the raw string parsing format.
      */
@@ -528,20 +596,6 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
             this.z = Integer.parseInt(parts[3]);
             this.dim = Integer.parseInt(parts[4]);
             this.speed = Integer.parseInt(parts[5]);
-        }
-
-        static ParsedEntry tryParse(String boundListStr, int idx) {
-            if (boundListStr == null || boundListStr.isEmpty()) return null;
-            String[] entries = boundListStr.split(";");
-            int clamped = clampIdx(idx, entries.length);
-            if (clamped >= entries.length) return null;
-            String[] parts = entries[clamped].split("\\|", 6);
-            if (parts.length < 6) return null;
-            try {
-                return new ParsedEntry(parts);
-            } catch (NumberFormatException e) {
-                return null;
-            }
         }
     }
 
