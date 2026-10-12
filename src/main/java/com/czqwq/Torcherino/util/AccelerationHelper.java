@@ -28,26 +28,63 @@ public final class AccelerationHelper {
     private AccelerationHelper() {}
 
     /**
+     * Returns the {@link System#nanoTime()} deadline for a single torch tick, or
+     * {@link #NO_DEADLINE} when the time budget is disabled.
+     * <p>
+     * This must be called <b>once per torch tick</b> (not per position): the budget
+     * documented in {@link Config#tickBudgetNanos} is a per-torch-tick cap, and creating
+     * it per position meant one torch covering a 9×3×9 area could legitimately spend
+     * 243 × tickBudgetNanos in a single tick. A cutoff also lets the caller stop walking
+     * its area entirely once the budget is spent, instead of starting futile work on every
+     * remaining position.
+     */
+    public static long newTickDeadline() {
+        return Config.enableTickBudget ? System.nanoTime() + Config.tickBudgetNanos : NO_DEADLINE;
+    }
+
+    /**
+     * Deadline value meaning "no time budget".
+     * <p>
+     * Must be {@code Long.MAX_VALUE}, not {@code Long.MIN_VALUE}: {@link System#nanoTime()} has
+     * an unspecified origin and may legitimately be <b>negative</b>, so it is not guaranteed to
+     * be greater than {@code Long.MIN_VALUE}. A {@code MIN_VALUE} sentinel would trip the
+     * "budget spent" branch on the very first position and silently disable all acceleration.
+     */
+    public static final long NO_DEADLINE = Long.MAX_VALUE;
+
+    /**
      * Accelerate a single block position. Called from all torch types.
      *
-     * @param world    the world
-     * @param torchX   torch X coordinate (center, to skip self)
-     * @param torchY   torch Y coordinate
-     * @param torchZ   torch Z coordinate
-     * @param timeRate effective speed (already multiplied)
-     * @param x        target block X
-     * @param y        target block Y
-     * @param z        target block Z
+     * @param world        the world
+     * @param torchX       torch X coordinate (center, to skip self)
+     * @param torchY       torch Y coordinate
+     * @param torchZ       torch Z coordinate
+     * @param timeRate     effective speed (already multiplied)
+     * @param x            target block X
+     * @param y            target block Y
+     * @param z            target block Z
+     * @param tickDeadline per-torch-tick deadline from {@link #newTickDeadline()}, or
+     *                     {@link #NO_DEADLINE} to run without a budget
      */
     public static void accelerateAtPosition(World world, int torchX, int torchY, int torchZ, int timeRate, int x, int y,
-        int z) {
+        int z, long tickDeadline) {
         // Skip self
         if (x == torchX && y == torchY && z == torchZ) {
             return;
         }
 
+        // Skip air before anything else. Inside World.updateEntities() the added-tile-entity
+        // list is being iterated (World.field_147481_N == true), so World.getTileEntity() on
+        // an air position costs a linear scan of that list, a chunk lookup and then *another*
+        // linear scan before returning null — for a position that provably has no tile entity.
+        // Since most of a torch's area is air, this is the single cheapest big win here.
+        Block block = world.getBlock(x, y, z);
+        if (block.isAir(world, x, y, z)) {
+            return;
+        }
+
         // Overlap detection: only active when stacking acceleration is disabled.
-        // When stacking is enabled (default), multiple torches can accelerate the same
+        // When stacking is enabled, multiple torches can accelerate the same
         // machine cumulatively, so we skip all overlap checks.
         // When overlap is active, "fastest wins": a faster torch can override a slower
         // one's claim on a position, ensuring the highest-tier torch always takes effect.
@@ -62,23 +99,15 @@ public final class AccelerationHelper {
             // Current torch is faster — it will override the slower claim below
         }
 
-        // Tick budget start time
-        long budgetEnd = 0;
-        if (Config.enableTickBudget) {
-            budgetEnd = System.nanoTime() + Config.tickBudgetNanos;
-        }
-
-        Block block = world.getBlock(x, y, z);
-
         // Accelerate block random ticks
-        if (block != null && block.getTickRandomly()) {
+        if (block.getTickRandomly()) {
             for (int i = 0; i < timeRate; i++) {
                 try {
                     block.updateTick(world, x, y, z, SHARED_RANDOM);
                 } catch (Exception ignored) {
                     // Ignore exceptions during acceleration (e.g. BiomesOPlenty NPE)
                 }
-                if (Config.enableTickBudget && System.nanoTime() > budgetEnd) {
+                if (System.nanoTime() > tickDeadline) {
                     return;
                 }
             }
@@ -121,7 +150,7 @@ public final class AccelerationHelper {
             } catch (Exception ignored) {
                 // Ignore acceleration exceptions
             }
-            if (Config.enableTickBudget && System.nanoTime() > budgetEnd) {
+            if (System.nanoTime() > tickDeadline) {
                 return;
             }
         }

@@ -642,6 +642,9 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
             validateBoundMachines();
         }
 
+        // Time budget for this whole torch tick (NOT per bound machine — see AccelerationHelper)
+        final long tickDeadline = AccelerationHelper.newTickDeadline();
+
         // Accelerate each bound machine
         for (BoundMachineEntry entry : boundMachines) {
             // Dimension check
@@ -658,7 +661,8 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
                 machineSpeed,
                 entry.x,
                 entry.y,
-                entry.z);
+                entry.z,
+                tickDeadline);
         }
     }
 

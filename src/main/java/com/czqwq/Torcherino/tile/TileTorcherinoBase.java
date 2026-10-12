@@ -63,6 +63,9 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
     // Recursion prevention
     private long lastTickProcessed = 0;
 
+    /** Whether this torch already has an entry in {@link #torchesByWorld} (see addToWorldSet). */
+    private boolean registeredInWorldSet = false;
+
     // ========== ITorcherinoTile implementation ==========
 
     @Override
@@ -137,10 +140,22 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
      * @param effectiveSpeed the effective speed (slider level × tier multiplier)
      */
     protected void applyAreaEffect(int effectiveSpeed) {
+        // Time budget for this whole torch tick (NOT per position — see AccelerationHelper).
+        // Created lazily: an area whose first positions are all air must not even read the clock.
+        long tickDeadline = AccelerationHelper.NO_DEADLINE;
+        boolean deadlineArmed = false;
+
         // Accelerate all positions in range
         for (int x = xMin; x <= xMax; ++x) {
             for (int y = yMin; y <= yMax; ++y) {
                 for (int z = zMin; z <= zMax; ++z) {
+                    if (!deadlineArmed) {
+                        tickDeadline = AccelerationHelper.newTickDeadline();
+                        deadlineArmed = true;
+                    } else if (System.nanoTime() > tickDeadline) {
+                        // Budget spent — stop walking the area instead of starting futile work.
+                        return;
+                    }
                     AccelerationHelper.accelerateAtPosition(
                         this.worldObj,
                         this.xCoord,
@@ -149,7 +164,8 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
                         effectiveSpeed,
                         x,
                         y,
-                        z);
+                        z,
+                        tickDeadline);
                 }
             }
         }
@@ -435,24 +451,27 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
     }
 
     private void addToWorldSet() {
-        if (this.worldObj == null) return;
+        // Per-instance short-circuit: this runs on the first line of updateEntity() every tick
+        // (on the client too, and before the isRemote/is_active early-outs), while the set only
+        // ever needs one entry per torch. Without this flag the "am I already registered?" test
+        // was a full iteration of the set, i.e. O(torches) per torch per tick = O(n²) per tick.
+        if (this.registeredInWorldSet || this.worldObj == null) return;
         synchronized (torchesByWorld) {
             Set<WeakReference<TileTorcherinoBase>> torches = torchesByWorld
                 .computeIfAbsent(this.worldObj, k -> new HashSet<>());
-            boolean exists = false;
             for (WeakReference<TileTorcherinoBase> ref : torches) {
                 if (ref.get() == this) {
-                    exists = true;
-                    break;
+                    this.registeredInWorldSet = true;
+                    return;
                 }
             }
-            if (!exists) {
-                torches.add(new WeakReference<>(this));
-            }
+            torches.add(new WeakReference<>(this));
+            this.registeredInWorldSet = true;
         }
     }
 
     private void removeFromWorldSet() {
+        this.registeredInWorldSet = false;
         if (this.worldObj == null) return;
         synchronized (torchesByWorld) {
             Set<WeakReference<TileTorcherinoBase>> torches = torchesByWorld.get(this.worldObj);
