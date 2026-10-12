@@ -215,6 +215,13 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
 
     /**
      * Periodically check bound machines and remove any that are no longer valid.
+     * <p>
+     * Note the {@code blockExists} guard: {@code World.getTileEntity} returns {@code null} both
+     * for "the machine is gone" and for "the machine's chunk is not loaded right now". Without
+     * the guard a player whose machines sit in unloaded chunks would have them silently unbound
+     * on every sweep (once every 100 ticks), each removal dropping a description-packet rebuild
+     * on them and forcing a manual re-bind. A chunk that is loaded but genuinely empty still
+     * fails the {@code getTileEntity} test below, so real removals are unaffected.
      */
     private void validateBoundMachines() {
         if (this.worldObj == null) return;
@@ -224,6 +231,11 @@ public abstract class TileWirelessTorcherinoBase extends TileEntity implements I
             if (entry.dim != this.worldObj.provider.dimensionId) {
                 it.remove();
                 this.markDirty();
+                continue;
+            }
+            if (!this.worldObj.blockExists(entry.x, entry.y, entry.z)) {
+                // Chunk unloaded: cannot tell whether the machine still exists, so keep the
+                // binding and re-check it on a later sweep.
                 continue;
             }
             TileEntity te = this.worldObj.getTileEntity(entry.x, entry.y, entry.z);
