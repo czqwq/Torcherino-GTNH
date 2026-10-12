@@ -91,6 +91,14 @@ public abstract class BaseMetaTileEntityAcceleration_Mixin extends CommonBaseMet
                     } finally {
                         accelerationState.setAccelerationState(false);
                     }
+                    // Stop here: the loop above already ran the machine's own ticks, so falling
+                    // through to the generic progress block below would advance this machine a
+                    // second time in the same tick. MTEAdvAssLine owns mProgresstime (it resets
+                    // and recomputes it per slice), so that second write - computed from the
+                    // stale pre-loop 'currentProgress' - both double-applies the discounted rate
+                    // and, when the loop broke early on 'stuck' or on the 1 ms guard, invents
+                    // progress the line never earned.
+                    return true;
                 }
             }
 
