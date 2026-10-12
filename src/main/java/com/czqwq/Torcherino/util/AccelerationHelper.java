@@ -166,11 +166,19 @@ public final class AccelerationHelper {
     }
 
     /**
-     * Pack block coordinates into a single long for efficient storage in sets.
-     * Assumes coordinate range fits in 21 bits each (roughly ±1,000,000).
+     * Pack block coordinates into a single long for efficient storage in maps.
+     * <p>
+     * Layout is 26 bits X | 12 bits Y | 26 bits Z, which covers the whole coordinate range a
+     * 1.7.10 {@code World} accepts (±30,000,000 in X/Z, 0–255 in Y) with room to spare.
+     * <p>
+     * The previous 21-bits-per-axis layout only covered ±2,097,151 and wrapped silently: a
+     * position at x = 2,097,252 produced the exact same key as x = 100, so two far-apart
+     * machines shared one overlap-detection entry and one of them was skipped as "already
+     * accelerated". Far-out bases are unusual, but not unusual enough to silently lose
+     * acceleration over.
      */
     private static long packPosition(int x, int y, int z) {
-        return ((long) (x) & 0x1FFFFFL) << 42 | ((long) (y) & 0x1FFFFFL) << 21 | ((long) (z) & 0x1FFFFFL);
+        return ((long) (x) & 0x3FFFFFFL) << 38 | ((long) (y) & 0xFFFL) << 26 | ((long) (z) & 0x3FFFFFFL);
     }
 
     /**
