@@ -1,6 +1,7 @@
 package com.czqwq.Torcherino.util;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -35,11 +36,31 @@ import com.czqwq.Torcherino.api.interfaces.ITorcherinoTile;
  * </ul>
  * Every decel torch re-registers its zone every tick. Entries that stop being
  * refreshed (torch broken or unloaded) are lazily dropped after one tick.
+ * <p>
+ * <b>Performance contract:</b> {@link #shouldSkipUpdate} is called from the
+ * {@code World.updateEntities()} redirect for <i>every</i> tile entity of
+ * <i>every</i> loaded dimension (tens of thousands per tick on a GTNH server),
+ * so deceleration must be free while the feature is unused. That is what the
+ * {@link #hasZones} volatile gate is for: with no decel torch placed it reduces
+ * the whole check to a single volatile read, and none of the
+ * {@code instanceof}/map work below is ever reached.
  */
 public final class DecelerationHelper {
 
     /** Per-world registry: packed position → current deceleration zone entry. */
     private static final Map<World, Map<Long, ZoneEntry>> zones = new WeakHashMap<>();
+
+    /**
+     * Fast-path gate for the mixin hot path: {@code false} whenever no deceleration
+     * zone is registered for any world, so the caller can bail out with a single
+     * volatile read instead of touching {@link #zones}.
+     * <p>
+     * Set by {@link #registerZone} when the first zone is added, cleared by
+     * {@link #pruneStaleZones} when the last entry is dropped. Both transitions
+     * happen while holding the {@link #zones} monitor, so the flag can never be
+     * stale in the "active" direction for longer than a single pruning pass.
+     */
+    private static volatile boolean hasZones = false;
 
     private DecelerationHelper() {}
 
@@ -71,6 +92,9 @@ public final class DecelerationHelper {
                         ZoneEntry entry = worldZones.get(key);
                         if (entry == null) {
                             worldZones.put(key, new ZoneEntry(rate, tick));
+                            // Arm the volatile gate in shouldSkipUpdate/shouldHoldBackProgress.
+                            // Cheap volatile store, and only on the first zone of a world map.
+                            hasZones = true;
                         } else {
                             entry.rate = Math.max(entry.rate, rate);
                             entry.lastRefreshTick = tick;
@@ -90,13 +114,16 @@ public final class DecelerationHelper {
      * unaffected, and their progress is held back by {@link #shouldHoldBackProgress}.
      */
     public static boolean shouldSkipUpdate(TileEntity tile) {
+        // Fast path FIRST: called once per tile entity per tick from the
+        // World.updateEntities() redirect (30k–50k tiles/tick on a GTNH server).
+        // With no decel torch placed this single volatile read is the entire cost —
+        // do not move any other work above it.
+        if (!hasZones) return false;
         if (tile == null || tile.getWorldObj() == null || tile.getWorldObj().isRemote) return false;
         // Torches never slow each other down (mirrors AccelerationHelper.isTorcherinoTile)
         if (tile instanceof ITorcherinoTile) return false;
         // Precise deceleration (progress only, energy untouched) handled by the GT mixin
         if (tile instanceof ITileEntityTickDeceleration) return false;
-        // Fast path: no deceleration zones active anywhere
-        if (zones.isEmpty()) return false;
 
         return lookupAndCheck(tile);
     }
@@ -107,31 +134,77 @@ public final class DecelerationHelper {
      * back. Called from the GT deceleration mixin after every machine tick (server side).
      */
     public static boolean shouldHoldBackProgress(TileEntity tile) {
+        // Same volatile fast path as shouldSkipUpdate: GT machines hit this twice per
+        // tick (HEAD + TAIL) each, so keep it free while no decel torch is placed.
+        if (!hasZones) return false;
         if (tile == null || tile.getWorldObj() == null || tile.getWorldObj().isRemote) return false;
         if (tile instanceof ITorcherinoTile) return false;
-        if (zones.isEmpty()) return false;
         return lookupAndCheck(tile);
     }
 
     /** Shared zone lookup: true when decelerated AND this is a held-back tick. */
     private static boolean lookupAndCheck(TileEntity tile) {
+        World world = tile.getWorldObj();
         long key = packPosition(tile.xCoord, tile.yCoord, tile.zCoord);
         synchronized (zones) {
-            Map<Long, ZoneEntry> worldZones = zones.get(tile.getWorldObj());
+            Map<Long, ZoneEntry> worldZones = zones.get(world);
             if (worldZones == null || worldZones.isEmpty()) return false;
             ZoneEntry entry = worldZones.get(key);
             if (entry == null) return false;
-            long tick = tile.getWorldObj()
-                .getTotalWorldTime();
+            long tick = world.getTotalWorldTime();
             if (tick - entry.lastRefreshTick > 1) {
                 // The torch no longer refreshes this position (broken/unloaded) — drop the entry.
                 // Tolerance of 1 tick covers both update orders within the tile entity list.
                 worldZones.remove(key);
+                // Once the last zone is gone, re-arm the volatile fast path so the
+                // per-tile cost drops back to a single read without waiting for a restart.
+                if (worldZones.isEmpty()) {
+                    if (pruneStaleZones(tick)) {
+                        // Another world still has live zones; nothing left to clean up here.
+                        return false;
+                    }
+                    // This was the last zone — drop the now-useless map.
+                    zones.remove(world);
+                }
                 return false;
             }
             // Run on only 1 out of `rate` ticks
             return tick % entry.rate != 0;
         }
+    }
+
+    /**
+     * Drops every zone entry whose torch stopped refreshing it. Called (while holding the
+     * {@link #zones} monitor) when a world's zone map has just become empty — i.e. while the
+     * last deceleration zone is disappearing, which is exactly when the {@link #hasZones}
+     * fast path has to be re-evaluated.
+     * <p>
+     * Entries refreshed on this tick by a torch of any world are kept, so a passing pruning
+     * can never drop a zone that is still in use; the tolerance matches {@link #lookupAndCheck}.
+     * Only reached from the path that has just emptied a world's map (i.e. while the
+     * deceleration feature is being torn down), and it re-arms itself as soon as a live zone
+     * is found, so it costs nothing while deceleration is idle.
+     *
+     * @param tick current total world time of the world being ticked
+     * @return true if any other world still holds a live zone
+     */
+    private static boolean pruneStaleZones(long tick) {
+        boolean anyZoneActive = false;
+        for (Iterator<Map<Long, ZoneEntry>> worldIter = zones.values()
+            .iterator(); worldIter.hasNext();) {
+            Map<Long, ZoneEntry> worldZones = worldIter.next();
+            // A torch that still exists has re-registered its zone during this tick.
+            worldZones.values()
+                .removeIf(entry -> tick - entry.lastRefreshTick > 1);
+            if (worldZones.isEmpty()) {
+                // Fully stale world — drop its map so the registry shrinks back to nothing.
+                worldIter.remove();
+            } else {
+                anyZoneActive = true;
+            }
+        }
+        hasZones = anyZoneActive;
+        return anyZoneActive;
     }
 
     /**
