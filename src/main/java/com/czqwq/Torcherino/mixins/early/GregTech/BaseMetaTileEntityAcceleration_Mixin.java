@@ -20,6 +20,26 @@ import gregtech.common.tileentities.machines.basic.MTEWorldAccelerator;
 import gregtech.common.tileentities.machines.multi.MTEBrickedBlastFurnace;
 import tectech.thing.metaTileEntity.multi.MTEResearchStation;
 
+/**
+ * Precise acceleration for every GregTech machine, implemented on the single TileEntity that hosts
+ * all of them ({@code BaseMetaTileEntity}): GT machines are never re-ticked (which would multiply
+ * EU consumption), only their progress is advanced.
+ * <p>
+ * <b>NH-Utilities coexistence:</b> NH-Utilities ships a mixin with the same target and the same
+ * method ({@code com.xir.NHUtilities.mixins.late.GregTech.BaseMetaTileEntityAcceleration_Mixin}).
+ * Mixin keeps only one copy of a duplicated method - the one applied first - and skips the other
+ * with a "Method overwrite conflict ... Skipping method." warning. This mixin lives in the early
+ * config ({@code mixins.Torcherino.json}, registered from the jar manifest at launch), while the
+ * NH-Utilities one is a late mixin (registered at {@code LoaderState.CONSTRUCTING}), so this
+ * implementation deterministically owns {@code tickAcceleration} whenever both mods are installed.
+ * Interfaces, in contrast, are merged unconditionally, so NH-Utilities' own accelerators keep
+ * working: their {@code ITileEntityTickAcceleration} calls resolve to this method.
+ * <p>
+ * Because the special cases below are reached through <i>Torcherino's</i> marker interfaces, the
+ * helper mixins providing them ({@code MTEAdvAssLineAcceleration_Mixin},
+ * {@code ResearchStationAcceleration_Mixin}) must NOT be disabled when NH-Utilities is present -
+ * doing so would push those machines onto the generic {@code mProgresstime} path below.
+ */
 @Pseudo
 @SuppressWarnings("UnusedMixin")
 @Mixin(targets = "gregtech.api.metatileentity.BaseMetaTileEntity", remap = false)

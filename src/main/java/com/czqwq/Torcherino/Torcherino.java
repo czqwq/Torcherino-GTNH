@@ -27,6 +27,16 @@ public class Torcherino {
 
     public static boolean hasGregTech = false;
 
+    /**
+     * True when NH-Utilities is installed. NH-Utilities ships acceleration mixins for exactly the
+     * same targets as this mod (GregTech {@code BaseMetaTileEntity}, {@code MTEAdvAssLine},
+     * TecTech {@code MTEResearchStation}, EnderIO {@code TileEntityEnder} and
+     * {@code AbstractPoweredMachineEntity}). Mixin keeps one copy of each duplicated member
+     * (Torcherino's, see the mixin javadoc) and logs a {@code Skipping method} warning for the
+     * other side, which is expected and harmless.
+     */
+    public static boolean hasNHUtilities = false;
+
     @Mod.Instance(MODID)
     public static Torcherino instance;
 
@@ -39,6 +49,14 @@ public class Torcherino {
     public void preInit(FMLPreInitializationEvent event) {
         // 检测GregTech是否加载
         hasGregTech = Loader.isModLoaded("gregtech");
+        // 检测NH-Utilities是否加载 (同源加速mixin, 共存说明见 hasNHUtilities 的 javadoc)
+        hasNHUtilities = Loader.isModLoaded("NHUtilities");
+        if (hasNHUtilities) {
+            LOG.info(
+                "NH-Utilities detected: both mods mix into the GregTech/EnderIO acceleration hooks. Torcherino keeps the "
+                    + "shared duplicate members; NH-Utilities' copies are skipped with 'Method overwrite conflict ... "
+                    + "Skipping method.' warnings during startup. This is the expected coexistence mode.");
+        }
         proxy.preInit(event);
     }
 

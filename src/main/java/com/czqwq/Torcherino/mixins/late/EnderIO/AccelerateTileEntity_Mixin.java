@@ -33,9 +33,18 @@ import crazypants.enderio.conduit.IConduit;
  * <p>
  * Duplicate acceleration is prevented: if two conduit bundles share the same network,
  * it is only accelerated once per world tick.
+ * <p>
+ * <b>NH-Utilities coexistence:</b> NH-Utilities ships an equivalent mixin for the very same class
+ * ({@code com.xir.NHUtilities.mixins.late.EnderIO.AccelerateTileEntity_Mixin}) which adds the same
+ * {@code tickAcceleration(int)} / {@code getTickAcceleratedRate()} pair. Mixin resolves such
+ * duplicate members by "first applied wins", and with equal mixin priorities the order of the two
+ * late configs comes from an ASM data table iteration, i.e. it is arbitrary. The explicit priority
+ * below removes that coin flip and lets this implementation win, because it is a strict superset
+ * (it also ticks EnderIO conduit networks) and its rate getter/setter pair must stay consistent
+ * with the {@code @Redirect} in {@link com.czqwq.Torcherino.mixins.late.EnderIO.AccelerateEnergyReceive_Mixin}.
  */
 @SuppressWarnings("UnusedMixin")
-@Mixin(value = TileEntityEnder.class, remap = false)
+@Mixin(value = TileEntityEnder.class, remap = false, priority = 1100)
 public abstract class AccelerateTileEntity_Mixin implements ITileEntityTickAcceleration {
 
     @Shadow(remap = false)

@@ -1,0 +1,78 @@
+name: Auto Release build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+concurrency:
+  group: auto-release-build
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  auto-build:
+    runs-on: ubuntu-24.04
+
+    env:
+      VERSION: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+      RELEASE_VERSION: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+      SNAPSHOT: ${{ (github.event_name == 'push' && contains(github.event.head_commit.message, '[snapshot]')) || endsWith(github.event_name == 'pull_request' && github.head_ref || github.ref_name, '-snapshot') }}
+      MAVEN_PUBLISHING_URL: ${{ vars.MAVEN_PUBLISHING_URL || 'https://nexus.gtnewhorizons.com/repository/releases/' }}
+
+    steps:
+      - name: Checkout mod repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 32
+
+      - name: Set up JDK versions
+        uses: actions/setup-java@v4
+        with:
+          java-version: |
+            8
+            17
+            21
+            25
+          distribution: zulu
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: https://gradle.com/terms-of-service
+          build-scan-terms-of-use-agree: yes
+          validate-wrappers: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Setup the workspace
+        run: ./gradlew --build-cache --info --stacktrace setupCIWorkspace
+
+      - name: Build the mod
+        run: ./gradlew --build-cache --info --stacktrace assemble
+
+      - name: Upload build artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto-build-${{ github.event.pull_request.number }}
+          path: build/libs/*.jar
+          if-no-files-found: error
+
+      - name: Release
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Automatic Build(自动构建)
+          body: Dynamic action build of branch ${{ github.ref_name }}
+          tag_name: auto-build
+          prerelease: false
+          make_latest: true
+          files: |
+            build/libs/*.jar

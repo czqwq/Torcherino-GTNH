@@ -13,6 +13,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.czqwq.Torcherino.api.interfaces.mixinHelper.IAccelerationState;
 import com.czqwq.Torcherino.api.interfaces.mixinHelper.IAdvAssLineInfo;
 
+/**
+ * Gives {@code MTEAdvAssLine} the acceleration state flag consumed by
+ * {@code BaseMetaTileEntityAcceleration_Mixin}, and cancels its energy drain while an accelerated
+ * tick is running.
+ * <p>
+ * <b>NH-Utilities coexistence:</b> NH-Utilities mixes the same class with the same members
+ * ({@code @Unique isAccelerationState}, {@code getMachineAccelerationState()},
+ * {@code setAccelerationState(boolean)} and an equivalent {@code onRunningTick} inject). This is
+ * safe without any exclusion: fields are attached for every mixin before any of them is merged, so
+ * neither side renames its field, and the second duplicate field is then dropped by name+descriptor
+ * lookup - both mods end up reading and writing the <i>same</i> flag. The duplicated methods have
+ * identical bodies, and both {@code @Inject} handlers stay in place, so the state stays consistent
+ * no matter which copy of the methods Mixin keeps.
+ */
 @Pseudo
 @Mixin(targets = "ggfab.mte.MTEAdvAssLine", remap = false)
 @SuppressWarnings({ "UnusedMixin", "AddedMixinMembersNamePattern" })

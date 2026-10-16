@@ -50,6 +50,14 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
     // Recursion prevention
     private long lastTickProcessed = 0;
 
+    /**
+     * Where the next area sweep starts, as a flat position index (see {@link #applyAreaEffect}).
+     * Advanced only when the per-tick time budget runs out, so the work a torch may spend per tick
+     * stays capped while every position is still reached within a few ticks. Not persisted: after a
+     * reload the sweep simply starts over at the first position.
+     */
+    private long areaWalkOffset = 0;
+
     // ========== ITorcherinoTile implementation ==========
 
     @Override
@@ -120,39 +128,73 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
      * <p>
      * The default implementation accelerates every position in range.
      * Subclasses that decelerate override this to register deceleration zones instead.
+     * <p>
+     * The sweep is <b>round-robin</b>: it starts at {@link #areaWalkOffset} and wraps around, so
+     * when the per-torch-tick time budget ({@link Config#tickBudgetNanos}) is exhausted the rest of
+     * the area is served on the following ticks instead of being starved. Previously the sweep
+     * always restarted at {@code xMin/yMin/zMin} and returned on the first over-budget position,
+     * which left the same tail of the area (in x→y→z order) unaccelerated every single tick, with
+     * no log line — machines that try to dodge the budget by being cheap (GregTech machines only
+     * get their {@code mProgresstime} written) starved behind expensive neighbours such as an
+     * Advanced Assembly Line (its own loop is capped at 1 ms), random-ticking crops or re-ticked
+     * vanilla tile entities. The budget itself is unchanged: it still caps what one torch spends
+     * per tick, the cap is just shared fairly over time.
+     * <p>
+     * The order of positions within one full sweep is unchanged (x outer, then y, then z), so
+     * overlap detection and every per-position behaviour stay exactly as before.
      *
      * @param effectiveSpeed the effective speed (slider level × tier multiplier)
      */
     protected void applyAreaEffect(int effectiveSpeed) {
+        // Flat x-major index space of the current bounds. Sizes are ≥ 1 because radii are clamped
+        // to [0, config max] when they are read from NBT and set through the GUI; the guards below
+        // only exist so a hand-edited config cannot turn the index math into a silent no-op.
+        final long sizeY = (long) yMax - yMin + 1L;
+        final long sizeZ = (long) zMax - zMin + 1L;
+        final long areaSize = ((long) xMax - xMin + 1L) * sizeY * sizeZ;
+        if (sizeY <= 0L || sizeZ <= 0L || areaSize <= 0L) return;
+
         // Time budget for this whole torch tick (NOT per position — see AccelerationHelper).
         // Created lazily: an area whose first positions are all air must not even read the clock.
         long tickDeadline = AccelerationHelper.NO_DEADLINE;
         boolean deadlineArmed = false;
 
-        // Accelerate all positions in range
-        for (int x = xMin; x <= xMax; ++x) {
-            for (int y = yMin; y <= yMax; ++y) {
-                for (int z = zMin; z <= zMax; ++z) {
-                    if (!deadlineArmed) {
-                        tickDeadline = AccelerationHelper.newTickDeadline();
-                        deadlineArmed = true;
-                    } else if (System.nanoTime() > tickDeadline) {
-                        // Budget spent — stop walking the area instead of starting futile work.
-                        return;
-                    }
-                    AccelerationHelper.accelerateAtPosition(
-                        this.worldObj,
-                        this.xCoord,
-                        this.yCoord,
-                        this.zCoord,
-                        effectiveSpeed,
-                        x,
-                        y,
-                        z,
-                        tickDeadline);
-                }
+        long index = this.areaWalkOffset % areaSize;
+        for (long processed = 0; processed < areaSize; processed++) {
+            long slot = index;
+            final int z = zMin + (int) (slot % sizeZ);
+            slot /= sizeZ;
+            final int y = yMin + (int) (slot % sizeY);
+            final int x = xMin + (int) (slot / sizeY);
+
+            if (!deadlineArmed) {
+                tickDeadline = AccelerationHelper.newTickDeadline();
+                deadlineArmed = true;
+            } else if (System.nanoTime() > tickDeadline) {
+                // Budget spent — resume here next tick. Do NOT return without saving the offset:
+                // that is what used to starve everything after this position, forever.
+                this.areaWalkOffset = index;
+                return;
+            }
+
+            AccelerationHelper.accelerateAtPosition(
+                this.worldObj,
+                this.xCoord,
+                this.yCoord,
+                this.zCoord,
+                effectiveSpeed,
+                x,
+                y,
+                z,
+                tickDeadline);
+
+            if (++index >= areaSize) {
+                index = 0L;
             }
         }
+
+        // The whole area fitted into this tick's budget — start over from the first position.
+        this.areaWalkOffset = 0L;
     }
 
     /**
