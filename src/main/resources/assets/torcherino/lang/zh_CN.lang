@@ -42,6 +42,8 @@ torcherino.gui.speed=速度
 torcherino.gui.x_range=X范围
 torcherino.gui.y_range=Y范围
 torcherino.gui.z_range=Z范围
+torcherino.gui.range_preview.on=工作范围预览: 开
+torcherino.gui.range_preview.off=工作范围预览: 关
 
 gui.torcherino.speed=速度:
 gui.torcherino.x_range=X范围:

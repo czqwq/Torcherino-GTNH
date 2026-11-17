@@ -42,6 +42,8 @@ torcherino.gui.speed=속도
 torcherino.gui.x_range=X 범위
 torcherino.gui.y_range=Y 범위
 torcherino.gui.z_range=Z 범위
+torcherino.gui.range_preview.on=작업 범위 미리보기: 켜짐
+torcherino.gui.range_preview.off=작업 범위 미리보기: 꺼짐
 
 gui.torcherino.speed=속도:
 gui.torcherino.x_range=X 범위:

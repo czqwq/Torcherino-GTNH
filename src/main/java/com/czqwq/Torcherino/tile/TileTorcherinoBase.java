@@ -3,20 +3,29 @@ package com.czqwq.Torcherino.tile;
 import static net.minecraft.util.StatCollector.translateToLocal;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 
 import com.cleanroommc.modularui.api.IGuiHolder;
 import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.drawable.GuiTextures;
 import com.cleanroommc.modularui.drawable.Rectangle;
 import com.cleanroommc.modularui.drawable.text.DynamicKey;
 import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.screen.ModularScreen;
 import com.cleanroommc.modularui.screen.UISettings;
+import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
 import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.widgets.SliderWidget;
 import com.cleanroommc.modularui.widgets.TextWidget;
+import com.cleanroommc.modularui.widgets.ToggleButton;
 import com.czqwq.Torcherino.Config;
+import com.czqwq.Torcherino.Torcherino;
 import com.czqwq.Torcherino.api.interfaces.ITorcherinoTile;
 import com.czqwq.Torcherino.util.AccelerationHelper;
 
@@ -24,6 +33,10 @@ import com.czqwq.Torcherino.util.AccelerationHelper;
  * Abstract base for GUI-operated Torcherino tiles (Accelerated, Compressed, DoubleCompressed).
  * Provides unified field management, NBT serialization, world tracking, GUI building,
  * and acceleration logic via {@link AccelerationHelper}.
+ * <p>
+ * The GUI also hosts a toggle for an in-world preview of the working area. The flag is persisted in
+ * NBT and synced to the client with the vanilla description packet, so the preview can be drawn by
+ * the client-side renderer even before the GUI is opened for the first time.
  * <p>
  * Subclasses only need to provide {@link #getSpeedMultiplier()} and {@link #getGuiTitleKey()}.
  */
@@ -39,6 +52,12 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
 
     protected boolean isStopped = false;
     protected boolean is_active = true;
+
+    /**
+     * Whether the working-area preview is drawn in the world. Persisted in NBT and synced to the
+     * client through the vanilla description packet.
+     */
+    protected boolean showRangePreview = false;
 
     // Cached bounds
     private byte cachedXRadius = -1;
@@ -233,7 +252,30 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
         this.markDirty();
     }
 
+    public boolean isRangePreviewShown() {
+        return this.showRangePreview;
+    }
+
+    /**
+     * Enables/disables the working-area preview. On the server this also persists the flag and
+     * pushes it to the clients tracking this tile; the client-side flag is updated by the GUI sync
+     * value or, outside of an open GUI, by the description packet.
+     */
+    public void setRangePreviewShown(boolean shown) {
+        if (this.showRangePreview == shown) return;
+        this.showRangePreview = shown;
+        if (this.worldObj != null && !this.worldObj.isRemote) {
+            this.markDirty();
+            this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
+        }
+    }
+
     // ========== GUI (buildUI) ==========
+
+    @Override
+    public ModularScreen createScreen(PosGuiData data, ModularPanel mainPanel) {
+        return new ModularScreen(Torcherino.MODID, mainPanel);
+    }
 
     @Override
     public ModularPanel buildUI(PosGuiData guiData, PanelSyncManager syncManager, UISettings uiSettings) {
@@ -264,6 +306,12 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
         DoubleSyncValue zRadiusValue = new DoubleSyncValue(
             () -> (double) Math.max(0, Math.min(zRadius, Config.maxZRadius)),
             val -> { setZRadius((int) Math.round(val)); }).allowC2S();
+
+        // Working-area preview toggle. The flag lives on the tile, so the button state, the
+        // persisted NBT and the in-world preview always agree; allowC2S lets the client flip it.
+        BooleanSyncValue previewValue = new BooleanSyncValue(this::isRangePreviewShown, this::setRangePreviewShown)
+            .allowC2S();
+        syncManager.syncValue("rangePreview", previewValue);
 
         Rectangle sliderBg = new Rectangle().color(0xFF3A3A3A);
 
@@ -349,6 +397,21 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
         })).left(8)
             .top(166));
 
+        // ---- Working-area preview toggle (top-right corner) ----
+        panel.child(
+            new ToggleButton().value(previewValue)
+                .background(false, GuiTextures.MC_BUTTON)
+                .background(true, GuiTextures.MC_BUTTON_PRESSED)
+                .hoverBackground(false, GuiTextures.MC_BUTTON_HOVERED)
+                .hoverBackground(true, GuiTextures.MC_BUTTON_HOVERED_PRESSED)
+                .overlay(false, GuiTextures.CHECK_BOX_EMPTY)
+                .overlay(true, GuiTextures.CHECK_BOX_FULL)
+                .addTooltip(false, translateToLocal("torcherino.gui.range_preview.off"))
+                .addTooltip(true, translateToLocal("torcherino.gui.range_preview.on"))
+                .size(16, 16)
+                .right(6)
+                .top(6));
+
         return panel;
     }
 
@@ -363,6 +426,7 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
         xRadius = clampInt(compound.getInteger("XRadius"), 0, Config.maxXRadius);
         yRadius = clampInt(compound.getInteger("YRadius"), 0, Config.maxYRadius);
         zRadius = clampInt(compound.getInteger("ZRadius"), 0, Config.maxZRadius);
+        showRangePreview = compound.getBoolean("ShowRangePreview");
 
         // Backwards compatibility: convert old TimeRate to new speedLevel
         if (compound.hasKey("TimeRate") && !compound.hasKey("SpeedLevel")) {
@@ -415,6 +479,48 @@ public abstract class TileTorcherinoBase extends TileEntity implements IGuiHolde
         compound.setInteger("XRadius", xRadius);
         compound.setInteger("YRadius", yRadius);
         compound.setInteger("ZRadius", zRadius);
+        compound.setBoolean("ShowRangePreview", showRangePreview);
+    }
+
+    // ========== Client sync / rendering ==========
+
+    /**
+     * Pushes the tile data (including the preview flag) to the client, so the client-side renderer
+     * can draw the preview before the GUI is ever opened and after a world reload.
+     */
+    @Override
+    public Packet getDescriptionPacket() {
+        NBTTagCompound tag = new NBTTagCompound();
+        this.writeToNBT(tag);
+        return new S35PacketUpdateTileEntity(this.xCoord, this.yCoord, this.zCoord, this.blockMetadata, tag);
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+        this.readFromNBT(pkt.func_148857_g());
+    }
+
+    /**
+     * @return the world-space box enclosing every block this torch affects. The corners are whole
+     *         block corners, so the box wraps the outermost affected blocks as well.
+     */
+    public AxisAlignedBB getWorkAreaBounds() {
+        return AxisAlignedBB.getBoundingBox(
+            this.xCoord - this.xRadius,
+            this.yCoord - this.yRadius,
+            this.zCoord - this.zRadius,
+            this.xCoord + this.xRadius + 1,
+            this.yCoord + this.yRadius + 1,
+            this.zCoord + this.zRadius + 1);
+    }
+
+    /**
+     * The preview box is much larger than the torch collision box, so the special renderer must not
+     * be frustum-culled by the tiny torch shape while the preview is enabled.
+     */
+    @Override
+    public AxisAlignedBB getRenderBoundingBox() {
+        return this.showRangePreview ? getWorkAreaBounds() : super.getRenderBoundingBox();
     }
 
     // ========== Tick / Acceleration ==========

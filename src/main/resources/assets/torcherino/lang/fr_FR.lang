@@ -42,6 +42,8 @@ torcherino.gui.speed=Vitesse
 torcherino.gui.x_range=Portée X
 torcherino.gui.y_range=Portée Y
 torcherino.gui.z_range=Portée Z
+torcherino.gui.range_preview.on=Aperçu de la zone de travail: activé
+torcherino.gui.range_preview.off=Aperçu de la zone de travail: désactivé
 
 gui.torcherino.speed=Vitesse:
 gui.torcherino.x_range=Portée X:

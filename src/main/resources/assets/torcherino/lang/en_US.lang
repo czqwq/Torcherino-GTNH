@@ -44,6 +44,8 @@ torcherino.gui.speed=Speed
 torcherino.gui.x_range=X Range
 torcherino.gui.y_range=Y Range
 torcherino.gui.z_range=Z Range
+torcherino.gui.range_preview.on=Working area preview: ON
+torcherino.gui.range_preview.off=Working area preview: OFF
 
 #incoming
 gui.torcherino.speed=Speed:
