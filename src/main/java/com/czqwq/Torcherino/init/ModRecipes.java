@@ -1,11 +1,13 @@
 package com.czqwq.Torcherino.init;
 
+import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
 import com.czqwq.Torcherino.Config;
 import com.czqwq.Torcherino.RecipeConfig;
+import com.czqwq.Torcherino.Torcherino;
 import com.czqwq.Torcherino.block.ModBlocks;
 import com.czqwq.Torcherino.item.ModItems;
 
@@ -14,6 +16,17 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class ModRecipes {
 
     public static void init() {
+        // Several recipes depend on the accelerated torcherino. When the torcherino itself cannot be
+        // crafted at all (vanilla and GT assembler recipes both disabled), those recipes use a plain
+        // torch instead of staying permanently uncraftable (see RecipeConfig.torcherinoFallbackRecipes).
+        boolean useTorchFallback = !RecipeConfig.isTorcherinoCraftable() && RecipeConfig.torcherinoFallbackRecipes;
+        Block torcherinoIngredient = useTorchFallback ? Blocks.torch : ModBlocks.torcherino;
+        if (useTorchFallback && (Config.enableDecelerateTorcherino || RecipeConfig.timeVial)) {
+            Torcherino.LOG.info(
+                "Accelerated torcherino has no crafting recipe: registering fallback time vial / "
+                    + "decelerate torcherino recipes with a plain torch.");
+        }
+
         // ========== Accelerated Torcherino (basic) ==========
         if (RecipeConfig.acceleratedTorcherino) {
             GameRegistry.addShapedRecipe(
@@ -39,7 +52,7 @@ public class ModRecipes {
                 'y',
                 Items.diamond,
                 'z',
-                ModBlocks.torcherino);
+                torcherinoIngredient);
         }
 
         // ========== Compressed Torcherino (9× → 1×, accelerated + classic + decelerate) ==========
@@ -161,7 +174,7 @@ public class ModRecipes {
                 'A',
                 Items.diamond,
                 'D',
-                ModBlocks.torcherino,
+                torcherinoIngredient,
                 'T',
                 Items.clock);
         }

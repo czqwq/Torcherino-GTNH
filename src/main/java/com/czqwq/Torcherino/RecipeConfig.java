@@ -14,6 +14,10 @@ import net.minecraftforge.common.config.Configuration;
  * Torch recipes are grouped by <b>type</b> (accelerated, classic, decelerate, wireless) and
  * <b>tier</b> (compressed, double-compressed). When a tier switch is disabled, only
  * the basic torch of that type is craftable; the compressed upgrade chain is removed.
+ * <p>
+ * When the accelerated torcherino cannot be crafted at all (both {@link #acceleratedTorcherino}
+ * and {@link #torcherinoAssembler} disabled), {@link #torcherinoFallbackRecipes} makes the
+ * recipes that depend on it (time vial, decelerate torcherino) use a plain torch instead.
  */
 public final class RecipeConfig {
 
@@ -46,6 +50,18 @@ public final class RecipeConfig {
     /** Time vial recipe. */
     public static boolean timeVial = true;
 
+    // ========== Recipe fallbacks ==========
+
+    /**
+     * Fallback recipes for items that normally require the accelerated torcherino when that
+     * torcherino cannot be crafted at all: the time vial and the decelerate torcherino recipes
+     * then use a plain torch instead of the torcherino.
+     * <p>
+     * Only takes effect while {@link #isTorcherinoCraftable()} is {@code false}; as long as the
+     * vanilla or the GT assembler torcherino recipe is enabled, the normal recipes are used.
+     */
+    public static boolean torcherinoFallbackRecipes = true;
+
     // ========== GregTech machine recipes ==========
 
     /**
@@ -72,6 +88,22 @@ public final class RecipeConfig {
 
     /** GT assembler classic conversion recipes (accelerated ↔ classic, all 3 tiers). */
     public static boolean gtClassicConversions = true;
+
+    // ========== Recipe availability ==========
+
+    /**
+     * Whether the accelerated torcherino has at least one enabled crafting route.
+     * <p>
+     * A torcherino is produced either by the vanilla shaped recipe ({@link #acceleratedTorcherino})
+     * or by the GT assembler recipe ({@link #torcherinoAssembler}). Recipes that depend on the
+     * torcherino (time vial, decelerate torcherino) use this to choose between the torcherino and
+     * the plain-torch fallback from {@link #torcherinoFallbackRecipes}.
+     *
+     * @return {@code true} when at least one torcherino-producing recipe is enabled
+     */
+    public static boolean isTorcherinoCraftable() {
+        return acceleratedTorcherino || (Torcherino.hasGregTech && torcherinoAssembler);
+    }
 
     // ========== Config file ==========
 
@@ -109,6 +141,14 @@ public final class RecipeConfig {
         timeTwister = cfg.getBoolean("timeTwister", "Vanilla", timeTwister, "Imperfect time twister recipe.");
 
         timeVial = cfg.getBoolean("timeVial", "Vanilla", timeVial, "Time vial recipe.");
+
+        torcherinoFallbackRecipes = cfg.getBoolean(
+            "torcherinoFallbackRecipes",
+            "Vanilla",
+            torcherinoFallbackRecipes,
+            "Use a plain torch instead of the accelerated torcherino in the time vial and decelerate "
+                + "torcherino recipes when the torcherino cannot be crafted at all "
+                + "(both acceleratedTorcherino and torcherinoAssembler disabled).");
 
         // ---- GregTech recipes ----
         wirelessTorcherino = cfg.getBoolean(
