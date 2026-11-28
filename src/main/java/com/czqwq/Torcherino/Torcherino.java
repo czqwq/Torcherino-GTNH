@@ -80,6 +80,8 @@ public class Torcherino {
 
     @Mod.EventHandler
     public void completeInit(FMLLoadCompleteEvent event) {
-        GTRecipes.loadRecipes();
+        if (hasGregTech) {
+            GTRecipes.loadRecipes();
+        }
     }
 }
